@@ -1,0 +1,30 @@
+results/
+/pp_checks
+.DS_Store
+.Rhistory
+data/simulated_data_K1.RDS
+data/simulated_data_K10.RDS
+data/simulated_data_K11.RDS
+data/simulated_data_K12.RDS
+data/simulated_data_K3.RDS
+data/simulated_data_K4.RDS
+data/simulated_data_K5.RDS
+data/simulated_data_K6.RDS
+data/simulated_data_K7.RDS
+data/simulated_data_K8.RDS
+data/simulated_data_K9.RDS
+data/
+cluster (parallel computing)/
+MAIN_SOURCE_file_augmented.R
+.DS_Store
+.DS_Store
+# macOS junk
+.DS_Store
+
+# R junk
+.Rhistory
+.RData
+.Rproj.user/
+
+# Git metadata
+.gitattributes
