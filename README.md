@@ -84,9 +84,9 @@ The following table maps each figure in the paper to its corresponding output fi
 | Posterior adjacency matrix (block-ordered)                   | `postprocessing.R` / `geom_adjacency_fixed` | [`images/geom_adjacency_fixed.png`](./images/geom_adjacency_fixed.png) |
 | Assignment-probabilities heatmap (players × clusters)        | `postprocessing.R` / `ass_prob_plot`        | [`images/ass_prob_plot.png`](./images/ass_prob_plot.png) |
 | Player skill (λ) uncertainty — median + 90% HPD (log10)      | `postprocessing.R` / `plot_lambda`          | [`images/lambda_uncertainty.png`](./images/lambda_uncertainty.png) |
-| P(Top block) by season — jittered points                     | `postprocessing.R` / `p_top_across_time`    | [`images/Ptop_across_time1.png`](./images/Ptop_across_time1.png) |
-| Shannon entropy across seasons (mean with 90% band)          | `postprocessing.R` / `entropy_plot`         | [`images/entropy_plot1.png`](./images/entropy_plot1.png) |
-| Nº of players in top block by season (bar chart)             | `postprocessing.R` / `num_block_plot`       | [`images/num_block_plot1.png`](./images/num_block_plot1.png) |
+| P(Top block) by season — jittered points                     | `postprocessing.R` / `p_top_across_time`    | [`images/Ptop_across_time.png`](./images/Ptop_across_time.png) |
+| Shannon entropy across seasons (mean with 90% band)          | `postprocessing.R` / `entropy_plot`         | [`images/entropy_plot.png`](./images/entropy_plot.png) |
+| Nº of players in top block by season (bar chart)             | `postprocessing.R` / `num_block_plot`       | [`images/num_block_plot.png`](./images/num_block_plot.png) |
 
 > All outputs are saved to the `images/` folder unless otherwise noted.  
 > You can customize the output location by modifying the save paths in `postprocessing.R`.
