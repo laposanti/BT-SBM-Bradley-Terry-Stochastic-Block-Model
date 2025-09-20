@@ -1,89 +1,76 @@
-# Bradley-Terry meets Stochastic Block Models
+# Bradley–Terry meets Stochastic Block Models
 
-This repository contains code and data for the paper:  
-**"Bradley-Terry meets Stochastic Block Models: Clustering Players from Pairwise Comparisons"**  
-by Lapo Santi, Nial Friel [University College Dublin].
+**"Bradley–Terry meets Stochastic Block Models: Clustering Players from Pairwise Comparisons"**  
+Lapo Santi, Nial Friel — University College Dublin
 
----
-
-## 🔍 Overview
-
-We propose a Bayesian Bradley-Terry model with block structure over players, combining discrete clustering with pairwise ranking data.  
-This repo includes:
-
-- an MCMC sampler implementing the full posterior inference,
-- simulation studies,
-- empirical application to ATP tennis data,
-- and code to reproduce all figures and tables.
+This repo now relies on the **`BTSBM`** R package for model implementation and MCMC.  
+Here the code’s job is to *connect paper and results*—clean runs, saved outputs, and reproducible figures.
 
 ---
 
-## 📁 Folder Structure
+## 🔍 What’s inside (lean & focused)
 
-| Folder        | Description |
-|---------------|-------------|
-| `main/`       | MCMC sampler and core model implementation |
-| `analysis/`   | Scripts to load posterior samples, produce plots, and replicate results in the paper |
-| `simulations/`| Scripts to generate synthetic data and assess recovery of block structures |
-| `images/`     | Precomputed plots for the paper (can be regenerated) |
-| `data/`       | Raw input data (ranking histories, tournament results, etc.) |
+- **Scripts at repo root** (no deep folder maze):
+  - `multiple_seasons_analysis.R` — runs all seasons, saves a single RDS.
+  - `single_season_analysis.R` — deep-dive on one season.
+  - `postprocessing.R` — reads saved results and generates all figures/tables.
+- **Stable outputs**:
+  - `results/` — serialized model results (`.rds`).
+  - `images/` — figures used in the paper (PNG + a LaTeX table).
 
----
-
-## ▶️ How to Run
-
-1. **Clone the repo:**
-
-    ```bash
-    git clone https://github.com/[your-username]/bradley-terry-sbm.git
-    cd bradley-terry-sbm
-    ```
-
-2. **Install dependencies in R:**
-
-    ```R
-    install.packages(c("coda", "ggplot2", "tidygraph", "ggside", "loo"))
-    ```
-
-3. **Run the full pipeline:**
-
-    This is a three-step process:
-
-    **a) Load the core MCMC engine**
-
-    ```R
-    source("main/mcmc_bt_sbm.R")
-    ```
-
-    This defines the MCMC function `run_bt_sbm_mcmc()`, but **does not execute anything** when sourced.
-
-    **b) Run the analysis on real data**
-
-    ```R
-    source("analysis/run_analysis.R")
-    ```
-
-    This driver script loads the ATP data, sets priors, runs the MCMC sampler, and saves the output to `results/mcmc_atp_results.rds`.
-
-    **c) Generate figures and summaries**
-
-    ```R
-    source("analysis/postprocessing.R")
-    ```
-
-    This reads the saved output and produces all plots and tables used in the paper.
+> If `results/` or `images/` are missing, the scripts will create them.
 
 ---
 
-## 📊 Reproducing the Figures
+## ▶️ Multiple-Season Analysis
+
+### 1) Install & load
+
+```r
+# install once (adjust to your GitHub origin if needed)
+# install.packages("devtools")
+devtools::install_github("laposanti/BTSBM")
+
+library(BTSBM)
+2) Run the sampler across seasons
+Place yourself in the repo root and run:
+dir.create("results", showWarnings = FALSE, recursive = TRUE)
+dir.create("images",  showWarnings = FALSE, recursive = TRUE)
+
+source("multiple_seasons_analysis.R")
+What it does:
+Iterates over all ATP seasons provided by BTSBM::ATP_2000_2022.
+Prints the season under analysis (with quick stats).
+Saves one file:
+results/augmented_multiple_seasonsGN1.rds
+3) Generate cross-season figures & tables
+source("postprocessing.R")
+Outputs (preview below) are written to images/.
+▶️ Single-Season Analysis
+You can reproduce figures/tables for one season in isolation (e.g. useful for paper insets or diagnostics).
+dir.create("results", showWarnings = FALSE, recursive = TRUE)
+dir.create("images",  showWarnings = FALSE, recursive = TRUE)
+
+# choose the season index (yr), and the model tag in the saved RDS (e.g. "GN")
+first_year <- 1999
+yr         <- 18
+model      <- "GN"
+
+source("single_season_analysis.R")  # prints the season label and builds the figures
+# or, if you prefer: source("postprocessing.R") after setting res_i, etc.
+📊 Figures — Multiple Seasons
+Description	Script / Object	Preview
+P(Top block) by season — jittered points	postprocessing.R / p_top_across_time	
+Shannon entropy across seasons (mean + 90% band)	postprocessing.R / entropy_plot	
+# players in top block by season (bars)	postprocessing.R / num_block_plot	
+LaTeX table — posterior probability of #blocks (rows = seasons)	postprocessing.R / post_numb_block_across_years_wide	images/post_numb_block_across_years_table.tex
+
+## 📊 Reproducing the Figures multi-season analysis
 
 The following table maps each figure in the paper to its corresponding output file and code section.
 
 | Description                                                  | Script / Object                             | Output file |
 |--------------------------------------------------------------|---------------------------------------------|-------------|
-| Posterior adjacency matrix (block-ordered)                   | `postprocessing.R` / `geom_adjacency_fixed` | [`images/geom_adjacency_fixed.png`](./images/geom_adjacency_fixed.png) |
-| Assignment-probabilities heatmap (players × clusters)        | `postprocessing.R` / `ass_prob_plot`        | [`images/ass_prob_plot.png`](./images/ass_prob_plot.png) |
-| Player skill (λ) uncertainty — median + 90% HPD (log10)      | `postprocessing.R` / `plot_lambda`          | [`images/lambda_uncertainty.png`](./images/lambda_uncertainty.png) |
 | P(Top block) by season — jittered points                     | `postprocessing.R` / `p_top_across_time`    | [`images/Ptop_across_time.png`](./images/Ptop_across_time.png) |
 | Shannon entropy across seasons (mean with 90% band)          | `postprocessing.R` / `entropy_plot`         | [`images/entropy_plot.png`](./images/entropy_plot.png) |
 | Nº of players in top block by season (bar chart)             | `postprocessing.R` / `num_block_plot`       | [`images/num_block_plot.png`](./images/num_block_plot.png) |
@@ -91,4 +78,29 @@ The following table maps each figure in the paper to its corresponding output fi
 > All outputs are saved to the `images/` folder unless otherwise noted.  
 > You can customize the output location by modifying the save paths in `postprocessing.R`.
 
----
+## 📊 Reproducing the Figures single-season analysis
+
+Description                                                  | Script / Object                             | Output file |
+|--------------------------------------------------------------|---------------------------------------------|-------------|
+| Posterior adjacency matrix (block-ordered)                   | `postprocessing.R` / `geom_adjacency_fixed` | [`images/geom_adjacency_fixed.png`](./images/geom_adjacency_fixed.png) |
+| Assignment-probabilities heatmap (players × clusters)        | `postprocessing.R` / `ass_prob_plot`        | [`images/ass_prob_plot.png`](./images/ass_prob_plot.png) |
+| Player skill (λ) uncertainty — median + 90% HPD (log10)      | `postprocessing.R` / `plot_lambda`          | [`images/lambda_uncertainty.png`](./images/lambda_uncertainty.png) |
+
+
+
+🧪 Reproduce in one go
+
+All seasons → results → figures:
+library(BTSBM)
+dir.create("results", showWarnings = FALSE, recursive = TRUE)
+dir.create("images",  showWarnings = FALSE, recursive = TRUE)
+
+source("multiple_seasons_analysis.R")
+source("postprocessing.R")
+One season only (e.g. index 18):
+library(BTSBM)
+first_year <- 1999; yr <- 18; model <- "GN"
+dir.create("results", showWarnings = FALSE, recursive = TRUE)
+dir.create("images",  showWarnings = FALSE, recursive = TRUE)
+
+source("single_season_analysis.R")
