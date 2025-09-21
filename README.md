@@ -83,10 +83,10 @@ source("single_season_analysis.R")  # prints the season label and builds the fig
 The following table maps each figure in the paper to its generating code and output file, with a live thumbnail preview.
 
 | Description | Script / Object | Preview | Output file |
-|---|---|---|---|
-| P(Top block) by season — jittered points | `postprocessing.R` / `p_top_across_time` | <a href="./images/Ptop_across_time.png"><img src="./images/Ptop_across_time.png" width="140" alt="P(top block) by season"></a> | [`images/Ptop_across_time.png`](./images/Ptop_across_time.png) |
-| Shannon entropy across seasons (mean with 90% band) | `postprocessing.R` / `entropy_plot` | <a href="./images/entropy_plot.png"><img src="./images/entropy_plot.png" width="140" alt="Entropy across seasons"></a> | [`images/entropy_plot.png`](./images/entropy_plot.png) |
-| Nº of players in top block by season (bar chart) | `postprocessing.R` / `num_block_plot` | <a href="./images/num_block_plot.png"><img src="./images/num_block_plot.png" width="140" alt="# players in top block"></a> | [`images/num_block_plot.png`](./images/num_block_plot.png) |
+|---|---|----|---|
+| P(Top block) by season — jittered points | `postprocessing.R` / `p_top_across_time` | <a href="./images/Ptop_across_time.png"><img src="./images/Ptop_across_time.png" width="160" alt="P(top block) by season"></a> | [`images/Ptop_across_time.png`](./images/Ptop_across_time.png) |
+| Shannon entropy across seasons (mean with 90% band) | `postprocessing.R` / `entropy_plot` | <a href="./images/entropy_plot.png"><img src="./images/entropy_plot.png" width="160" alt="Entropy across seasons"></a> | [`images/entropy_plot.png`](./images/entropy_plot.png) |
+| Nº of players in top block by season (bar chart) | `postprocessing.R` / `num_block_plot` | <a href="./images/num_block_plot.png"><img src="./images/num_block_plot.png" width="160" alt="# players in top block"></a> | [`images/num_block_plot.png`](./images/num_block_plot.png) |
 
 > All outputs are saved to the `images/` folder unless otherwise noted.  
 > You can customize the output location by modifying the save paths in `postprocessing.R`.
@@ -96,12 +96,11 @@ The following table maps each figure in the paper to its generating code and out
 ## 🎯 Figures — Single-Season Analysis (with inline previews)
 
 | Description | Script / Object | Preview | Output file |
-|---|---|---|---|
-| Posterior adjacency matrix (block-ordered) | `postprocessing.R` / `geom_adjacency_fixed` | <a href="./images/adjacency_reordered.png"><img src="./images/adjacency_reordered.png" width="140" alt="Block-ordered adjacency"></a> | [`images/adjacency_reordered.png`](./images/adjacency_reordered.png) |
-| Assignment-probabilities heatmap (players × clusters) | `postprocessing.R` / `ass_prob_plot` | <a href="./images/assignment_uncertainty.png"><img src="./images/assignment_uncertainty.png" width="140" alt="Assignment probabilities heatmap"></a> | [`images/assignment_uncertainty.png`](./images/assignment_uncertainty.png) |
-| Player skill (λ) uncertainty — median + 90% HPD (log10) | `postprocessing.R` / `plot_lambda` | <a href="./images/lambda_uncertainty.png"><img src="./images/lambda_uncertainty.png" width="140" alt="Lambda uncertainty"></a> | [`images/lambda_uncertainty.png`](./images/lambda_uncertainty.png) |
+|---|---|----|---|
+| Posterior adjacency matrix (block-ordered) | `postprocessing.R` / `geom_adjacency_fixed` | <a href="./images/adjacency_reordered.png"><img src="./images/adjacency_reordered.png" width="160" alt="Block-ordered adjacency"></a> | [`images/adjacency_reordered.png`](./images/adjacency_reordered.png) |
+| Assignment-probabilities heatmap (players × clusters) | `postprocessing.R` / `ass_prob_plot` | <a href="./images/assignment_uncertainty.png"><img src="./images/assignment_uncertainty.png" width="160" alt="Assignment probabilities heatmap"></a> | [`images/assignment_uncertainty.png`](./images/assignment_uncertainty.png) |
+| Player skill (λ) uncertainty — median + 90% HPD (log10) | `postprocessing.R` / `plot_lambda` | <a href="./images/lambda_uncertainty.png"><img src="./images/lambda_uncertainty.png" width="160" alt="Lambda uncertainty"></a> | [`images/lambda_uncertainty.png`](./images/lambda_uncertainty.png) |
 
-> Tip: tweak the `width` attribute (e.g., `100–180`) if the thumbnails feel too small/large in your renderer.
 
 
 🧪 Reproduce in one go
