@@ -77,8 +77,7 @@ source("single_season_analysis.R")  # prints the season label and builds the fig
 
 ```
 
-## 📊 Reproducing the Figures multi-season analysis
-## 📊 Figures — Multiple Seasons (with inline previews)
+## 📊 Figures — Multiple Seasons 
 
 The following table maps each figure in the paper to its generating code and output file, with a live thumbnail preview.
 
@@ -93,7 +92,7 @@ The following table maps each figure in the paper to its generating code and out
 
 ---
 
-## 🎯 Figures — Single-Season Analysis (with inline previews)
+## 📊 Figures — Single-Season Analysis 
 
 | Description | Script / Object | Preview | Output file |
 |---|---|----|---|
