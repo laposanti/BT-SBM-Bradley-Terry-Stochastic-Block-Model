@@ -60,6 +60,19 @@ source("postprocessing.R")
 
 Outputs (preview below) are written to `images/`.
 
+## 📊 Figures — Multiple Seasons 
+
+The following table maps each figure in the paper to its generating code and output file, with a live thumbnail preview.
+
+| Description | Script / Object | Preview | Output file |
+|---|---|----|---|
+| P(Top block) by season — jittered points | `postprocessing.R` / `p_top_across_time` | <a href="./images/Ptop_across_time.png"><img src="./images/Ptop_across_time.png" width="160" alt="P(top block) by season"></a> | [`images/Ptop_across_time.png`](./images/Ptop_across_time.png) |
+| Shannon entropy across seasons (mean with 90% band) | `postprocessing.R` / `entropy_plot` | <a href="./images/entropy_plot.png"><img src="./images/entropy_plot.png" width="160" alt="Entropy across seasons"></a> | [`images/entropy_plot.png`](./images/entropy_plot.png) |
+| Nº of players in top block by season (bar chart) | `postprocessing.R` / `num_block_plot` | <a href="./images/num_block_plot.png"><img src="./images/num_block_plot.png" width="160" alt="# players in top block"></a> | [`images/num_block_plot.png`](./images/num_block_plot.png) |
+
+> All outputs are saved to the `images/` folder unless otherwise noted.  
+> You can customize the output location by modifying the save paths in `postprocessing.R`.
+
 ## ▶️ Single-Season Analysis
 
 You can reproduce figures/tables for one season in isolation (e.g. useful for paper insets or diagnostics).
@@ -76,19 +89,6 @@ model      <- "GN"
 source("single_season_analysis.R")  # prints the season label and builds the figures
 
 ```
-
-## 📊 Figures — Multiple Seasons 
-
-The following table maps each figure in the paper to its generating code and output file, with a live thumbnail preview.
-
-| Description | Script / Object | Preview | Output file |
-|---|---|----|---|
-| P(Top block) by season — jittered points | `postprocessing.R` / `p_top_across_time` | <a href="./images/Ptop_across_time.png"><img src="./images/Ptop_across_time.png" width="160" alt="P(top block) by season"></a> | [`images/Ptop_across_time.png`](./images/Ptop_across_time.png) |
-| Shannon entropy across seasons (mean with 90% band) | `postprocessing.R` / `entropy_plot` | <a href="./images/entropy_plot.png"><img src="./images/entropy_plot.png" width="160" alt="Entropy across seasons"></a> | [`images/entropy_plot.png`](./images/entropy_plot.png) |
-| Nº of players in top block by season (bar chart) | `postprocessing.R` / `num_block_plot` | <a href="./images/num_block_plot.png"><img src="./images/num_block_plot.png" width="160" alt="# players in top block"></a> | [`images/num_block_plot.png`](./images/num_block_plot.png) |
-
-> All outputs are saved to the `images/` folder unless otherwise noted.  
-> You can customize the output location by modifying the save paths in `postprocessing.R`.
 
 ---
 
@@ -123,3 +123,16 @@ dir.create("images",  showWarnings = FALSE, recursive = TRUE)
 
 source("single_season_analysis.R")
 ```
+---
+## ▶️ Model Comparison Analysis
+
+```r
+source("Model Comparison.R")  # saves the results as csv and reproduces the plot in Fig. 7
+```
+
+## 📊 Figures — Single-Season Analysis 
+
+| Description | Script / Object | Preview | Output file |
+|---|---|----|---|
+| Model comparison | `Model Comparison.R` / `DELPD_plot.png` | <a href="./images/DELPD_plot.png"><img src="./images/DELPD_plot.png" width="160" alt="Delta ELPD between BT and BT-SBM"></a> | [`images/DELPD_plot.png`](./images/DELPD_plot.png) |
+
