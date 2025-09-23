@@ -16,7 +16,6 @@ Here the code’s job is to *connect paper and results*—clean runs, saved outp
   - `Model comparison` - compares the BT model with the BT-SBM proposed model.
 
 - **`Pre-computed outputs**:
-  - `results/` — serialized model results (`.rds`).
   - `images/` — figures used in the paper (PNG + a LaTeX table).
 
 > If `results/` or `images/` are missing, the scripts will create them.
