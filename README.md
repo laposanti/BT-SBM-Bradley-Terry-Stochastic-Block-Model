@@ -60,7 +60,7 @@ source("postprocessing.R")
 
 Outputs (preview below) are written to `images/`.
 
-## 📊 Figures — Multiple Seasons 
+### 📊 Figures — Multiple Seasons 
 
 The following table maps each figure in the paper to its generating code and output file, with a live thumbnail preview.
 
@@ -92,7 +92,7 @@ source("single_season_analysis.R")  # prints the season label and builds the fig
 
 ---
 
-## 📊 Figures — Single-Season Analysis 
+### 📊 Figures — Single-Season Analysis 
 
 | Description | Script / Object | Preview | Output file |
 |---|---|----|---|
@@ -130,7 +130,7 @@ source("single_season_analysis.R")
 source("Model Comparison.R")  # saves the results as csv and reproduces the plot in Fig. 7
 ```
 
-## 📊 Figures — Single-Season Analysis 
+### 📊 Figures — Model Comparison Analysis
 
 | Description | Script / Object | Preview | Output file |
 |---|---|----|---|
