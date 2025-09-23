@@ -10,9 +10,11 @@ Here the code’s job is to *connect paper and results*—clean runs, saved outp
 ## 🔍 What’s inside (lean & focused)
 
 - **Scripts at repo root**
-  - `multiple_seasons_analysis.R` — runs all seasons, saves a single RDS.
-  - `single_season_analysis.R` — deep-dive on one season.
-  - `postprocessing.R` — reads saved results and generates all figures/tables.
+  - `RUN_MCMC.R` — run the code across the 22 seasons of male ATP tennis tournaments. 
+  - `multiple_seasons_analysis.R` — post_processes all seasons, saving tables and plots
+  - `single_season_analysis.R` — post_processes just the selected season, saving tables and plots
+  - `Model comparison` - compares the BT model with the BT-SBM proposed model.
+
 - **`Pre-computed outputs**:
   - `results/` — serialized model results (`.rds`).
   - `images/` — figures used in the paper (PNG + a LaTeX table).
