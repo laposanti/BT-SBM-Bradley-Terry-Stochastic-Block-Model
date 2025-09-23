@@ -2,6 +2,27 @@
 ########################################################################
 # MAIN MCMC FUNCTION
 ########################################################################
+compress_by_lambda_desc <- function(x, lambda) {
+  L <- length(lambda)
+  csize <- tabulate(x, nbins = L)
+  occupied <- which(csize > 0L)
+  H <- length(occupied)
+  if (H == 0L) stop("No occupied clusters; x is empty?")
+  
+  lam_occ <- lambda[occupied]
+  ord <- order(lam_occ, decreasing = TRUE)     # sort by lambda desc
+  new_order <- occupied[ord]                   # old labels in new rank order
+  
+  # old label -> new label map: top lambda -> 1, next -> 2, ...
+  map <- integer(L); map[new_order] <- seq_len(H)
+  
+  x_new <- map[x]
+  
+  lambda_new <- rep(NA_real_, L)
+  lambda_new[seq_len(H)] <- lambda[new_order]
+  
+  list(x = x_new, lambda = lambda_new)
+}
 
 gibbs_bt_sbm <- function(w_ij, n_ij,
                          a = 0.1, b = 1,
@@ -15,7 +36,9 @@ gibbs_bt_sbm <- function(w_ij, n_ij,
   
   stopifnot(all(dim(w_ij) == dim(n_ij)),
             nrow(w_ij) == ncol(w_ij))
-  K <- nrow(w_ij)
+  N <- nrow(w_ij)
+  stopifnot(N == ncol(w_ij))
+  L <- N
   prior <- match.arg(prior)
   
   ## fast helpers ----------------------------------------------------
@@ -23,16 +46,15 @@ gibbs_bt_sbm <- function(w_ij, n_ij,
   sumZi_row  <- function(mat) rowSums(mat)    # later alias
   
   ## starting values -------------------------------------------------
-  if (is.null(init_x))
-    x <- sample.int(K, K, TRUE) else x <- init_x
-  lambda <- rgamma(K, a, b)
-  Z      <- matrix(0, K, K)
+  if (is.null(init_x)) x <- sample.int(L, N, TRUE) else x <- init_x
+  lambda <- rgamma(L, a, b)
+  Z      <- matrix(0, N, N)
   
   ## storage ---------------------------------------------------------
   keep  <- n_iter - burnin
-  xsamp <- matrix(NA_integer_, keep, K)
-  lsamp <- matrix(NA_real_,    keep, K)
-  zsamp <- if (store_z) array(0, c(keep, K, K)) else NULL
+  xsamp <- matrix(NA_integer_, keep, N)
+  lsamp <- matrix(NA_real_,    keep, N)
+  zsamp <- if (store_z) array(0, c(keep, N, N)) else NULL
   keep_id <- 0L
   
   ## choose urn function --------------------------------------------
@@ -52,9 +74,9 @@ gibbs_bt_sbm <- function(w_ij, n_ij,
   for (it in seq_len(n_iter)) {
     
     ## --- 1. latent Z ----------------------------------------------
-    for (i in 1:(K-1)) {
+    for (i in 1:(N-1)) {
       li <- lambda[x[i]]
-      for (j in (i+1):K) {
+      for (j in (i+1):N) {
         nij <- n_ij[i, j]
         if (nij > 0) {
           lj <- lambda[x[j]]
@@ -65,11 +87,10 @@ gibbs_bt_sbm <- function(w_ij, n_ij,
     }
     
     ## --- 2. single‑site update for each player --------------------
-    for (i in seq_len(K)) {
-      
-      csize <- tabulate(x[-i], nbins = K)
+    for (i in seq_len(N)) {
+      csize    <- tabulate(x[-i], nbins = L)
       occupied <- which(csize > 0L)
-      H  <- length(occupied)
+      H        <- length(occupied)
       wm <- w_i[i];  Zi <- sum(Z[i, ])
       
       prior_w <- urn_fun(csize[occupied])
@@ -94,27 +115,26 @@ gibbs_bt_sbm <- function(w_ij, n_ij,
       pr <- pr / sum(pr)
       dest <- sample.int(H + 1, 1, prob = pr)
       
+      # inside the single-site update for item i:
+      csize    <- tabulate(x[-i], nbins = L)   # counts AFTER removing i
+      occupied <- which(csize > 0L)
+      H        <- length(occupied)
       if (dest <= H) {
         ## move to existing cluster
         x[i] <- occupied[dest]
       } else {
         ## create / reuse empty label
         empty <- which(csize == 0L)
-        if (length(empty) == 0L) {
-          K <- K + 1L
-          lambda <- c(lambda, NA_real_)
-          empty  <- K
-          Z      <- rbind(Z, 0);  Z <- cbind(Z, 0)
-          n_ij   <- rbind(n_ij, 0); n_ij <- cbind(n_ij, 0)
-        }
-        newlab     <- empty[1]
-        x[i]       <- newlab
+        stopifnot(length(empty) >= 1L)     # should always hold with nbins = L = N
+        newlab <- empty[1L]
+        x[i]   <- newlab
         lambda[newlab] <- rgamma(1, a + wm, b + Zi)
       }
     }
     
+
     ## --- 3. update lambda for each occupied block ----------------------
-    csize <- tabulate(x, nbins = K)
+    csize <- tabulate(x, nbins = L)
     Zrs   <- rowSums(Z)
     for (k in which(csize > 0L)) {
       mem      <- which(x == k)
@@ -123,19 +143,25 @@ gibbs_bt_sbm <- function(w_ij, n_ij,
       lambda[k] <- rgamma(1, shape_k, rate_k)
     }
     
-    ## --- 4. identifiability – geometric‑mean = 1 ------------------
-    occ <- which(csize > 0L)
-    if (length(occ) > 0L) {
-      g <- exp(mean(log(lambda[occ])))
-      lambda[occ] <- lambda[occ] / g
-    }
-    lambda[csize == 0L] <- NA_real_
+    cmp <- compress_by_lambda_desc(x, lambda)
+    x      <- cmp$x
+    lambda <- cmp$lambda
     
+    occ <- sort(unique(x))
+    H   <- length(occ)
+    b   <- rgamma(1, shape = 1 + H * a,
+                  rate  = 1 + sum(lambda[occ]))
     ## --- 5. store -------------------------------------------------
     if (it > burnin) {
-      keep_id                <- keep_id + 1L
-      xsamp[keep_id, ]       <- x
-      lsamp[keep_id, ]       <- lambda
+      keep_id <- keep_id + 1L
+      xsamp[keep_id, ] <- x
+      
+      # mark empty labels as NA in storage only (no effect on the chain)
+      csize <- tabulate(x, nbins = L)
+      lam_store <- lambda
+      lam_store[csize == 0L] <- NA_real_
+      lsamp[keep_id, ] <- lam_store
+      
       if (store_z) zsamp[keep_id, , ] <- Z
     }
     
