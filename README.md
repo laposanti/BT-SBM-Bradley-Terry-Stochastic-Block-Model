@@ -2,8 +2,8 @@
 
 Lapo Santi, Nial Friel — University College Dublin
 
-This repo now relies on the **`BTSBM`** R package for model implementation and MCMC.  
-Here the code’s job is to *connect paper and results*—clean runs, saved outputs, and reproducible figures.
+This repo reproduces the results of the paper and relies on the **[`BTSBM`]([https://laposanti](https://github.com/laposanti/BTSBM))** R package for model implementation and MCMC.
+ 
 
 ---
 
@@ -16,7 +16,6 @@ Here the code’s job is to *connect paper and results*—clean runs, saved outp
   - `Model comparison` - compares the BT model with the BT-SBM proposed model.
 
 - **`Pre-computed outputs**:
-  - `results/` — serialized model results (`.rds`).
   - `images/` — figures used in the paper (PNG + a LaTeX table).
 
 > If `results/` or `images/` are missing, the scripts will create them.
