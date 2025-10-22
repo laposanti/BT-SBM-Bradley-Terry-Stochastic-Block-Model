@@ -10,8 +10,6 @@ library(BTSBM)          # core package
 library(mcclust)        # comp.psm, vi.dist
 library(mcclust.ext)    # minVI, minbinder
 library(mclust)         # adjustedRandIndex
-library(foreach)        # parallel loops             "
-library(LaplacesDemon)  # WAIC (optional)
 library(filelock)
 library(MASS)           # mvrnorm
 
@@ -31,43 +29,57 @@ if (!dir.exists(results_dir)) {
   message(sprintf("Created results directory at: %s", results_dir))
 }
 
-# Storage
+# --- helpers -------------------------------------------------
+fmt_dur <- function(sec) {
+  if (sec < 90) return(sprintf("%.1f s", sec))
+  if (sec < 5400) return(sprintf("%.1f min", sec/60))
+  sprintf("%.2f h", sec/3600)
+}
+
+
+n <- 105
+gamma <- 0.8
+k <- 1:n
+probs_gnedin <- sapply(k, function(h) HGnedin(V, h, gamma))
+probs_gnedin <- probs_gnedin / sum(probs_gnedin)  # normalize!
+
+meanK <- sum(k * probs_gnedin)
+varK  <- sum((k - meanK)^2 * probs_gnedin)
+
+c(mean = meanK, variance = varK)
+# mean ≈ 2.364270161, variance ≈ 45.95131612
+ 
+
+# --- storage -------------------------------------------------
 res_list <- vector("list", length(tennis_years))
 names(res_list) <- years
+season_times <- numeric(length(tennis_years))
 
-# Reproducibility
+# --- reproducibility ----------------------------------------
 set.seed(1234)
 
-# Run per season
 for (i in seq_along(tennis_years)) {
-  yr <- years[i]
-  Y_ij <- tennis_years[[i]]$Y_ij
-  N_ij <- tennis_years[[i]]$N_ij
+  yr  <- years[i]
+  w_ij <- tennis_years[[i]]$Y_ij
   
-  # Progress print with a couple of quick stats
-  message(sprintf("▶ Season %s \n",yr))
+  message(sprintf("▶ Season %s", yr))
   
-  res <- BTSBM::gibbs_bt_sbm(
-    w_ij = Y_ij,
-    n_ij = N_ij,          # K x K matrices for pairwise data
-    a = 0.1,
-    b = 1,                # Gamma(a, b) hyperparams for each block rate
-    prior = "GN",         # one of c("DP", "PY", "DM", "GN")
-    alpha_PY = 1,         # DP/PY param (ignored for GN)
-    sigma_PY = 0,         # PY discount (ignored for GN)
-    # beta_DM, H_DM removed (not used under GN)
-    gamma_GN = 0.8,       # Gnedin parameter
-    n_iter = 500,
-    burnin = 500,
-    init_x = NULL,        # optional init for cluster labels
-    store_z = FALSE,      # store all latent Z?
-    verbose = TRUE
+  res <- gibbs_bt_urn_rcpp(
+    w_ij     = w_ij,
+    a        = 2,
+    prior    = "GN",
+    gamma_GN = 0.8,
+    T_iter   = 30000,
+    T_burn   = 5000,
+    init_x   = NULL,
+    store_z  = FALSE,
+    verbose  = TRUE
   )
-  
+
   res_list[[i]] <- res
 }
 
 # Save computations
-out_file <- file.path(results_dir, "augmented_multiple_seasonsGN1.rds")
+out_file <- file.path(results_dir, "augmented_multiple_seasonsGN2.rds")
 saveRDS(res_list, out_file)
 message(sprintf("Saved results to: %s", out_file))
