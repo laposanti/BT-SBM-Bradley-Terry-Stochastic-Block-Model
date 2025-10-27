@@ -1,0 +1,16 @@
+\begin{table}[!h]
+\centering
+\begin{tabular}{rrr}
+\toprule
+a & tau & sd\_lambda\\
+\midrule
+\cellcolor{gray!10}{6} & \cellcolor{gray!10}{0.43} & \cellcolor{gray!10}{0.44}\\
+5 & 0.47 & 0.50\\
+\cellcolor{gray!10}{4} & \cellcolor{gray!10}{0.53} & \cellcolor{gray!10}{0.57}\\
+3 & 0.63 & 0.69\\
+\cellcolor{gray!10}{2} & \cellcolor{gray!10}{0.80} & \cellcolor{gray!10}{0.93}\\
+\addlinespace
+1 & 1.28 & 1.78\\
+\bottomrule
+\end{tabular}
+\end{table}

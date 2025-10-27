@@ -27,14 +27,15 @@ results <- purrr::map_dfr(names(tennis_years), function(yr) {
   ############################################################
   ## 3a.  Fit both models
   ############################################################
+  
   fit_simple  <- gibbs_bt_simple(w_ij = Y,
                                  T_iter = 10000, T_burn = 1500,
                                  verbose = T)
   
   fit_cluster <- gibbs_bt_sbm(w_ij = Y, T_iter = 10000, T_burn = 1500,
-                                  prior = "GN", a = 1.5,
-                                  gamma_GN = 0.8,
-                                  verbose = T)
+                              prior = "GN", a = 1.5,
+                              gamma_GN = 0.8,
+                              verbose = T)
   
   ############################################################
   ## 3b.  Build point‑wise log‑likelihood matrices
@@ -42,7 +43,7 @@ results <- purrr::map_dfr(names(tennis_years), function(yr) {
   
   
   ll_simple  <- make_bt_simple_loo(w_ij = Y,lambda_samples =   fit_simple$lambda_samples)
-
+  
   ll_cluster <- make_bt_cluster_loo(w_ij = Y,
                                     lambda_samples = fit_cluster$lambda_samples,
                                     x_samples = fit_cluster$x_samples)

@@ -23,7 +23,7 @@ if (is.null(years) || !all(nzchar(years))) {
 }
 
 # Ensure results directory exists
-results_dir <- file.path(getwd(), "results")
+results_dir <- file.path(getwd(), "raw_output")
 if (!dir.exists(results_dir)) {
   dir.create(results_dir, recursive = TRUE)
   message(sprintf("Created results directory at: %s", results_dir))
@@ -39,12 +39,8 @@ fmt_dur <- function(sec) {
 
 n <- 105
 gamma <- 0.8
-k <- 1:n
-probs_gnedin <- sapply(k, function(h) HGnedin(V, h, gamma))
-probs_gnedin <- probs_gnedin / sum(probs_gnedin)  # normalize!
-
-meanK <- sum(k * probs_gnedin)
-varK  <- sum((k - meanK)^2 * probs_gnedin)
+meanK <- BTSBM::gnedin_K_mean(n,gamma)
+varK  <- BTSBM::gnedin_K_var(n,gamma)
 
 c(mean = meanK, variance = varK)
 # mean ≈ 2.364270161, variance ≈ 45.95131612
@@ -64,7 +60,7 @@ for (i in seq_along(tennis_years)) {
   
   message(sprintf("▶ Season %s", yr))
   
-  res <- gibbs_bt_urn_rcpp(
+  res <- gibbs_bt_sbm(
     w_ij     = w_ij,
     a        = 2,
     prior    = "GN",
@@ -80,6 +76,7 @@ for (i in seq_along(tennis_years)) {
 }
 
 # Save computations
-out_file <- file.path(results_dir, "augmented_multiple_seasonsGN2.rds")
+out_file <- file.path(results_dir, "MCMC_raw_output1.rds")
+
 saveRDS(res_list, out_file)
 message(sprintf("Saved results to: %s", out_file))

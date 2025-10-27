@@ -201,9 +201,11 @@ tab <- data.frame(
   mutate(tau = round(sqrt(trigamma(a)),2))%>%
   mutate(sd_lambda = round(sqrt(a)/exp(digamma(a)),2))
 
-kable(tab, format = "latex", digits = 3, booktabs = TRUE) %>%
+latex_tab_priorsens<- kable(tab, format = "latex", digits = 3, booktabs = TRUE) %>%
   kable_styling(latex_options = c("striped", "hold_position"))
 
+
+writeLines(latex_tab_priorsens, "./tables/pror_sensitvity.csv")
 
 
 

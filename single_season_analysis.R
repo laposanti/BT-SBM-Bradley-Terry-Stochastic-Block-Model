@@ -15,7 +15,7 @@ library(BTSBM)
 # Single seasons Analysis
 # -------------------------------
 #change this
-current_wd<- "/Users/lapo_santi/Desktop/Nial/Bterry/BT-SBM-Bradley-Terry-Stochastic-Block-Model/"
+current_wd = "./Desktop/Nial/Bterry/BT-SBM-Bradley-Terry-Stochastic-Block-Model/"
 setwd(current_wd)
 
 # ensure images dir exists
@@ -29,7 +29,7 @@ season_label <- paste0(first_year + yr, "/", first_year + yr + 1)
 print(season_label)
 
 # Load the output of gibbs_bt_sbm()
-fit <- readRDS(paste0("results/augmented_multiple_seasonsGN2.rds"))[[yr]]
+fit <- readRDS(paste0("./raw outputs/augmented_multiple_seasonsGN2.rds"))[[yr]]
 x_samples <- fit$x_samples
 lambda_samples <- fit$lambda_samples
 
@@ -39,24 +39,42 @@ w_ij <- tennis_years[[yr]]$Y_ij #pairwise success matrix
 pl_df <- tennis_years[[yr]]$players_df #info about players
 
 #Relabeling posterior draws
-inf_i <- relabel_by_lambda(res_i$x_samples, lambda_samples = res_i$lambda_samples)
+inf_i <- relabel_by_lambda(x_samples, lambda_samples = lambda_samples)
 
-#Producing the plots
+BTSBM::pretty_table_K_distribution(inf_i)
+
+count_K = function(x) length(unique(x))
+table(apply(x_samples,1,count_K))/nrow(x_samples)
+
 
 #Reordered heatmap
-geom_adjacency_fixed<- plot_block_adjacency(inf_i,w_ij = Y_ij)
-geom_adjacency_fixed
+reordered_heatmap <- plot_block_adjacency(fit = inf_i,w_ij = w_ij,x_hat = inf_i$minVI_partition)
+reordered_heatmap
 
 #Uncertainty over the assignment
-ass_prob_plot<- BTSBM::plot_assignment_probabilities(inf_i,w_ij = Y_ij,max_n_clust = 4)
+ass_prob_plot <- plot_assignment_probabilities(inf_i,w_ij = w_ij,max_n_clust = 3)
 ass_prob_plot
 
 #Posterior Lambdas, and their uncertainty
-plot_lambda<- BTSBM::plot_lambda_uncertainty(inf_i,w_ij = Y_ij,max_n_clust = 4)
+plot_lambda <- plot_lambda_uncertainty(inf_i,w_ij = w_ij,max_n_clust = 3)
 plot_lambda
 
-ggsave(filename = "./images/ass_prob_plot2.png",ass_prob_plot, height = 8, width = 10)
-ggsave(filename = "./images/geom_adjacency_fixed2.png",geom_adjacency_fixed, height = 8, width = 10)
+ggsave(filename = "./images/reordered_heatmap.png",reordered_heatmap, height = 8, width = 10)
+ggsave(filename = "./images/ass_prob_plot.png",ass_prob_plot, height = 8, width = 10)
 ggsave(filename = "./images/lambda_uncertainty2.png",plot_lambda, height = 6, width = 7)
 
 
+#-------------------------------
+# Saving also the credible balls
+
+#vertical upper bound (coarsest partition)
+reordered_heatmap_vert_ub <- plot_block_adjacency(fit = inf_i,w_ij = w_ij,x_hat = inf_i$credible_ball_upper_partition)+theme( plot.margin = unit(c(0, 0, 0, 0), "pt"))  # remove outer padding
+#vertical lower bound (finest partition)
+reordered_heatmap_vert_lb <- plot_block_adjacency(fit = inf_i,w_ij = w_ij,x_hat = inf_i$credible_ball_lower_partition)+theme( plot.margin = unit(c(0, 0, 0, 0), "pt"))
+#Horizontal bound (complexity unaware)
+reordered_heatmap_horiz <- plot_block_adjacency(fit = inf_i,w_ij = w_ij,x_hat = inf_i$credible_ball_horiz_partition)+theme( plot.margin = unit(c(0, 0, 0, 0), "pt"))
+
+
+ggsave(filename = "./images/reordered_heatmap_v_ub.png",reordered_heatmap_vert_ub, height = 8, width = 10)
+ggsave(filename = "./images/reordered_heatmap_v_lb.png",reordered_heatmap_vert_lb, height = 8, width = 10)
+ggsave(filename = "./images/reordered_heatmap_horiz.png",reordered_heatmap_horiz, height = 8, width = 10)

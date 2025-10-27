@@ -12,12 +12,13 @@ library(kableExtra)
 library(reshape2)
 library(stringr)
 library(ggside)
-# Load helper functions
-source("main/utils.R")
-source("main/mcmc_bt_sbm.R")
+
+# Set your project root 
+#setwd('/.../current folder')
+
 
 # Load full MCMC results across seasons
-res_list <- readRDS("results/augmented_multiple_seasonsGN2.rds")
+res_list <- readRDS("results/MCMC_raw_output.rds")
 
 first_year <- 1999
 
@@ -109,13 +110,9 @@ for (yr in seq_along(res_list)) {
   message("Processed season: ", season_label)
 }
 
-# Save outputs
-# write.csv(avg_strength_each_player, "results/avg_strength_each_player.csv", row.names = FALSE)
-# write.csv(prob_assignment_across_years, "results/prob_assignment_across_years.csv", row.names = FALSE)
-# write.csv(entropy_per_season, "results/entropy_per_season.csv", row.names = FALSE)
-# write.csv(post_numb_block_across_years, "results/post_num_blocks.csv", row.names = FALSE)
 
 # Generate plots and tables
+
 # ------------------------------------------------------------------------
 # Probability on the number of clusters for each season
 # Table in kable that has rows = season, columns = #blocks,
@@ -130,25 +127,17 @@ post_numb_block_across_years_wide <- post_numb_block_across_years %>%
     values_from = prob
   )
 
-# Identify the most likely number of blocks per season
-num_blocks_season <- post_numb_block_across_years %>%
-  group_by(season) %>%
-  summarise(num_blocks = num_blocks[ which.max(prob) ]) %>%
-  mutate(num_blocks = factor(num_blocks, ordered = TRUE))
-
 
 # Render table
 latex_table <- kable(post_numb_block_across_years_wide, format = "latex", digits = 3, booktabs = TRUE) %>%
   kable_styling(latex_options = c("striped", "hold_position"))
 
 
-# Save to a .tex file
-writeLines(latex_table, "./images/post_numb_block_across_years_table.tex")
-
 
 # ------------------------------------------------------------------------
 # Jittered scatterplot: Probability of top-block membership by season
 # ------------------------------------------------------------------------
+
 prob_assignment_across_years <- prob_assignment_across_years %>%
   left_join(num_blocks_season, by = 'season')
 
@@ -176,6 +165,11 @@ p_top_across_time = ggplot(prob_assignment_across_years, aes(x = season, y = Clu
         panel.grid.minor = element_blank()
 )
 
+# ------------------------------------------------------------------------
+# Entropy plot: indicator of the dispersion of the top-block membership
+# ------------------------------------------------------------------------
+
+#functions that computes the Shannon entropy
 shannon_entropy <- function(x, base = exp(1), na.rm = TRUE) {
   if (na.rm) x <- x[!is.na(x)]
   # Use only occupied categories to match H / log(K_occ)
@@ -197,8 +191,7 @@ cluster_stats <- prob_assignment_across_years %>%
     .groups = "drop"
   )
 
-
-
+#Plot
 entropy_plot<- entropy_per_season %>%
   mutate(season_start = as.numeric(sub("/.*", "", season))) %>%  # estrai 2000 da "2000/2001"
   ggplot(aes(x = season_start, y = mean_entropy)) +
@@ -257,7 +250,7 @@ num_block_plot = prob_assignment_across_years %>%
 
 
 # ------------------------------------------------------------------------
-# Player trajectory across the seasons
+# Extra: Player trajectory across the seasons
 # Compare P(top block) vs (100 - end-of-season ranking), for example
 # ------------------------------------------------------------------------
 pl_selected <- c("Rafael Nadal", "Roger Federer", "Novak Djokovic", "Andy Murray")
@@ -275,15 +268,26 @@ prob_assignment_across_years %>%
   theme(axis.text.x = element_text(angle = 90))+
   facet_wrap(~pl_name)
 
+#-----
+# Saving the outputs
+#-----
 
-ggsave("./images/entropy_plot2.png",plot = entropy_plot,
+
+# Save the .tex file in the tables folder 
+writeLines(latex_table, "./tables/post_numb_block_across_years_table.tex")
+
+#Save the plots in the images folder
+ggsave(filename = "./images/entropy_plot.png",
+       plot = entropy_plot,
        width = 13, height=5)
 
-ggsave(plot = p_top_across_time,filename = "./images/Ptop_across_time2.png",
+ggsave(filename = "./images/Ptop_across_time.png",
+       plot = p_top_across_time,
        width = 9, height=5)
 
 
-ggsave(file = "./images/num_block_plot2.png",num_block_plot,
+ggsave(filename = "./images/num_block_plot.png",
+       plot = num_block_plot,
        width=9,height = 5)
 
 
