@@ -72,11 +72,11 @@ source("single_season_analysis.R")
 
 ### 📊 Outputs — Single-season
 
-| Description                            | Script / Object                 | Preview                              | Output file                   |
-| -------------------------------------- | ------------------------------- | -------------------------------------| ----------------------------- |
-| Posterior adjacency matrix (Fig. 3)     | `postprocessing.R` / `reordered_heatmap` | <a href="./images/reordered_heatmap.png"><img src="./images/reordered_heatmap.png" width="160" alt="Block-ordered adjacency"></a>  | `images/reordered_heatmap.png`  |
-| Assignment-probability heatmap (Fig. 4) | `postprocessing.R` / `ass_prob_plot`     | <a href="./images/ass_prob_plot.png"><img src="./images/ass_prob_plot.png" width="160" alt="Assignment probabilities"></a>         | `images/ass_prob_plot.png`      |
-| Player skill (λ) uncertainty (Fig. 5)   | `postprocessing.R` / `plot_lambda`       | <a href="./images/lambda_uncertainty.png"><img src="./images/lambda_uncertainty.png" width="160" alt="Lambda uncertainty"></a>     | `images/lambda_uncertainty.png` |
+| Description                             | Script / Object                 | Preview                              | Output file                   |
+| --------------------------------------  | ------------------------------- | -------------------------------------| ----------------------------- |
+| Posterior adjacency matrix — Fig. 3     | `postprocessing.R` / `reordered_heatmap` | <a href="./images/reordered_heatmap.png"><img src="./images/reordered_heatmap.png" width="160" alt="Block-ordered adjacency"></a>  | `images/reordered_heatmap.png`  |
+| Assignment-probability heatmap — Fig. 4 | `postprocessing.R` / `ass_prob_plot`     | <a href="./images/ass_prob_plot.png"><img src="./images/ass_prob_plot.png" width="160" alt="Assignment probabilities"></a>         | `images/ass_prob_plot.png`      |
+| Player skill (λ) uncertainty — Fig. 5   | `postprocessing.R` / `plot_lambda`       | <a href="./images/lambda_uncertainty.png"><img src="./images/lambda_uncertainty.png" width="160" alt="Lambda uncertainty"></a>     | `images/lambda_uncertainty.png` |
 
 ---
 
@@ -91,7 +91,7 @@ source("Model_Comparison.R")  # saves CSV and the plot used in Fig. 6
 | Description                            | Script / Object                 | Preview                              | Output file                   |
 | -------------------------------------- | ------------------------------- | -------------------------------------| ----------------------------- |
 | Model comparison plot (ΔELPD) — Fig. 6 | `Model_Comparison.R`            | <a href="./images/DELPD_plot.png"><img src="./images/DELPD_plot.png" width="160" alt="ΔELPD BT vs BT–SBM"></a>                                                                       | `images/DELPD_plot.png`       |
-| Model comparison table                 | `Model_Comparison.R`            | <a href="./tables/table_rendering_images/model_choice_table.png"><img src="./tables/table_rendering_images/model_choice_table.png" width="160" alt="Model choice table"></a>         | `tables/model_comparison.csv` |
+| Model comparison table    — Tab. 3             | `Model_Comparison.R`            | <a href="./tables/table_rendering_images/model_choice_table.png"><img src="./tables/table_rendering_images/model_choice_table.png" width="160" alt="Model choice table"></a>         | `tables/model_comparison.csv` |
 
 ---
 
@@ -169,9 +169,9 @@ source("single_season_analysis.R")
 
 | Description                            | Script / Object                 | Preview                                   | Output file                   |
 | -------------------------------------- | ------------------------------- | ------------------------------------------| ----------------------------- |
-| Vertical upper bound     | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_v_ub.png"><img src="./images/reordered_heatmap_v_ub.png" width="160" alt="Upper bound partition"></a>                                     | `images/reordered_heatmap_v_ub.png`  |
-| Vertical lower bound     | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_v_lb.png"><img src="./images/reordered_heatmap_v_lb.png" width="160" alt="Lower bound partition"></a>                                     | `images/reordered_heatmap_v_lb.png`  |
-| Horizontal bound         | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_horiz.png"><img src="./images/reordered_heatmap_horiz.png" width="160" alt="Horizontal bound partition"></a>                              | `images/reordered_heatmap_horiz.png` |
+| Vertical upper bound  — Fig. 13      | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_v_ub.png"><img src="./images/reordered_heatmap_v_ub.png" width="160" alt="Upper bound partition"></a>                                     | `images/reordered_heatmap_v_ub.png`  |
+| Vertical lower bound  — Fig. 14      | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_v_lb.png"><img src="./images/reordered_heatmap_v_lb.png" width="160" alt="Lower bound partition"></a>                                     | `images/reordered_heatmap_v_lb.png`  |
+| Horizontal bound     — Fig. 15      | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_horiz.png"><img src="./images/reordered_heatmap_horiz.png" width="160" alt="Horizontal bound partition"></a>                              | `images/reordered_heatmap_horiz.png` |
 
 > As above, plots go to `images/`, tables to `tables/`.
 
