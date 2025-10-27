@@ -148,10 +148,10 @@ source("simulation/simulation.R")
 
 ### 📊 Outputs — Simulation study
 
-| Description                            | Script / Object                 | Preview                              | Output file                   |
-| -------------------------------------- | ------------------------------- | -------------------------------------| ----------------------------- |
+| Description                            | Script / Object                 | Preview                                   | Output file                   |
+| -------------------------------------- | ------------------------------- | ------------------------------------------| ----------------------------- |
 | Contingency table — Table 6 | `simulation/simulation.R`     | <a href="./tables/table_rendering_images/contingency_table.png"><img src="./tables/table_rendering_images/contingency_table.png" width="160" alt="Contingency table"></a>         | `tables/contingency_table.tex` |
-| ARI plot — Fig. 12          | `simulation/simulation.R`     | <a href="./images/ari_plot.png"><img src="./images/ari_plot.png" width="160" alt="ARI plot"></a>                                                                                  | `images/ari_plot.png`          |
+| ARI plot — Fig. 12          | `simulation/simulation.R`     | <a href="./images/ARI_plot.png"><img src="./images/ARI_plot.png" width="160" alt="ARI plot"></a>                                                                                  | `images/ari_plot.png`          |
 
 > As above, plots go to `images/`, tables to `tables/`. Paths are configurable in `postprocessing.R`.
 
@@ -167,8 +167,8 @@ source("single_season_analysis.R")
 
 ### 📊 Outputs — Reordered adjacency matrices with alternative partitions within the same credible ball
 
-| Description                            | Script / Object                 | Preview                              | Output file                   |
-| -------------------------------------- | ------------------------------- | -------------------------------------| ----------------------------- |
+| Description                            | Script / Object                 | Preview                                   | Output file                   |
+| -------------------------------------- | ------------------------------- | ------------------------------------------| ----------------------------- |
 | Vertical upper bound     | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_v_ub.png"><img src="./images/reordered_heatmap_v_ub.png" width="160" alt="Upper bound partition"></a>                                     | `images/reordered_heatmap_v_ub.png`  |
 | Vertical lower bound     | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_v_lb.png"><img src="./images/reordered_heatmap_v_lb.png" width="160" alt="Lower bound partition"></a>                                     | `images/reordered_heatmap_v_lb.png`  |
 | Horizontal bound         | `single_season_analysis.R`     | <a href="./images/reordered_heatmap_horiz.png"><img src="./images/reordered_heatmap_horiz.png" width="160" alt="Horizontal bound partition"></a>                              | `images/reordered_heatmap_horiz.png` |
