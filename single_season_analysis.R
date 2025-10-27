@@ -44,19 +44,18 @@ inf_i <- relabel_by_lambda(x_samples, lambda_samples = lambda_samples)
 BTSBM::pretty_table_K_distribution(inf_i)
 
 count_K = function(x) length(unique(x))
-table(apply(x_samples,1,count_K))/nrow(x_samples)
-
+coda::HPDinterval(mcmc(apply(x_samples,1,count_K)))
 
 #Reordered heatmap
 reordered_heatmap <- plot_block_adjacency(fit = inf_i,w_ij = w_ij,x_hat = inf_i$minVI_partition)
 reordered_heatmap
 
 #Uncertainty over the assignment
-ass_prob_plot <- plot_assignment_probabilities(inf_i,w_ij = w_ij,max_n_clust = 3)
+ass_prob_plot <- plot_assignment_probabilities(inf_i,w_ij = w_ij,max_n_clust = 4)
 ass_prob_plot
 
 #Posterior Lambdas, and their uncertainty
-plot_lambda <- plot_lambda_uncertainty(inf_i,w_ij = w_ij,max_n_clust = 3)
+plot_lambda <- plot_lambda_uncertainty(inf_i,w_ij = w_ij,max_n_clust = 4)
 plot_lambda
 
 ggsave(filename = "./images/reordered_heatmap.png",reordered_heatmap, height = 8, width = 10)

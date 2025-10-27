@@ -1,42 +1,32 @@
-# **"Bradley–Terry meets Stochastic Block Models: Clustering Players from Pairwise Comparisons"**  
+# Bradley–Terry Stochastic Block Models
 
-Lapo Santi, Nial Friel — University College Dublin
+**Lapo Santi, Nial Friel — University College Dublin**
 
-This repo reproduces the results of the paper and relies on the **[`BTSBM`]([https://laposanti](https://github.com/laposanti/BTSBM))** R package for model implementation and MCMC.
- 
-
----
-
-## 🔍 What’s inside (lean & focused)
-
-- **Scripts at repo root**
-
-  - `RUN_MCMC.R` — run the code across the 22 seasons of male ATP tennis tournaments. 
-  
-  - `multiple_seasons_analysis.R` — post_processes all seasons, saving tables and plots
-  
-  - `single_season_analysis.R` — post_processes just the selected season, saving tables and plots
-  
-  - `Model comparison` - compares the BT model with the BT-SBM proposed model.
-
-
-- **`Other folder**:
-
-  - `simulation/` — it contains the code to run the simulation study (Appendix D)
-  
-  - `results/` — it collects the raw outputs of the scripts.
-
-  - `images/` — it collects the figures used in the paper (PNG format).
-  
-  - `tables/` — tables reported in the paper (LaTeX format).
-
-> If `results/`, `images/` or `tables/` are missing, the scripts will create them.
-
+This repository reproduces the paper’s results and relies on the R package [**BTSBM**](https://github.com/laposanti/BTSBM) for model implementation and MCMC.
 
 ---
 
+## 🔍 What’s inside
 
-### 1) Install & load
+### Root-level scripts
+
+* `RUN_MCMC.R` — fits the BT–SBM across the 22 ATP seasons in `BTSBM::ATP_2000_2022` and saves posterior draws.
+* `multiple_seasons_analysis.R` — post-processes all seasons; writes figures and tables.
+* `single_season_analysis.R` — post-processes a selected season; writes figures and tables.
+* `Model_Comparison.R` — compares vanilla BT vs BT–SBM (ELPD-based) and saves plots/tables.
+
+### Other folders
+
+* `simulation/` — code to reproduce the simulation study (Appendix D) and prior-sensitivity experiments.
+* `results/` — raw outputs from `RUN_MCMC.R` (posterior samples, summaries).
+* `images/` — figures used in the paper (PNG).
+* `tables/` — paper tables (LaTeX, with rendered PNG previews under `tables/table_rendering_images/`).
+
+> If `results/`, `images/`, or `tables/` are missing, the scripts will create them on first run.
+
+---
+
+## 1) Install & load
 
 ```r
 # install once (adjust to your GitHub origin if needed)
@@ -46,129 +36,166 @@ devtools::install_github("laposanti/BTSBM")
 library(BTSBM)
 ```
 
-## ▶️ Fit the model to the data
+> **Requirements:** R ≥ 4.2 recommended. See `BTSBM/DESCRIPTION` for imported packages (plotting via `ggplot2`; LaTeX required for table rendering).
 
+---
 
-Place yourself in the repo root and run:
+## 2) Fit the model to all seasons
+
+From the repository root, run:
 
 ```r
 source("RUN_MCMC.R")
 ```
 
-What it does:
+**What it does:**
 
-- Iterates over all ATP seasons provided by BTSBM::ATP_2000_2022.
+* Iterates over all seasons in `BTSBM::ATP_2000_2022`.
+* Prints progress with quick season stats.
+* Writes the combined output to:
 
-- Prints the season under analysis (with quick stats).
-
-- Saves one file:
-
-`results/augmented_multiple_seasonsGN2.rds`
-
-This will take approximately 35 minutes.
-
-## ▶️ Single-Season Analysis
-
-You can reproduce figures/tables for one season in isolation (e.g. useful for paper insets or diagnostics).
-
-### 📊 Outputs — Single-Season Analysis 
-
-| Description | Script / Object | Preview | Output file |
-|---|---|----|---|
-| Posterior adjacency matrix - Figure 3 | `postprocessing.R` / `geom_adjacency_fixed` | <a href="./images/adjacency_reordered.png"><img src="./images/adjacency_reordered.png" width="160" alt="Block-ordered adjacency"></a> | [`images/adjacency_reordered.png`](./images/adjacency_reordered.png) |
-| Assignment-probabilities heatmap - Figure 4 | `postprocessing.R` / `ass_prob_plot` | <a href="./images/assignment_uncertainty.png"><img src="./images/assignment_uncertainty.png" width="160" alt="Assignment probabilities heatmap"></a> | [`images/assignment_uncertainty.png`](./images/assignment_uncertainty.png) |
-| Player skill (λ) uncertainty — Figure 5 | `postprocessing.R` / `plot_lambda` | <a href="./images/lambda_uncertainty.png"><img src="./images/lambda_uncertainty.png" width="160" alt="Lambda uncertainty"></a> | [`images/lambda_uncertainty.png`](./images/lambda_uncertainty.png) |
-
----
-
-## ▶️ Model Comparison Analysis
-
-```r
-source("Model Comparison.R")  # saves the results as csv and reproduces the plot in Fig. 7
+```
+results/augmented_multiple_seasonsGN2.rds
 ```
 
-### 📊 Outputs — Model Comparison Analysis
-
-| Description | Script / Object | Preview | Output file |
-|---|---|----|---|
-| Model comparison plot - Figure 6 | `Model Comparison.R` / `DELPD_plot.png` | <a href="./images/DELPD_plot.png"><img src="./images/DELPD_plot.png" width="160" alt="Delta ELPD between BT and BT-SBM"></a> | [`images/DELPD_plot.png`](./images/DELPD_plot.png) |
-| Model comparison table | `Model Comparison.R` / `model_comparison.csv` | <a href="./tables/model_comparison.csv"><img src="./tables/model_comparison.csv" width="160" alt="Delta ELPD between BT and BT-SBM"></a> | [`tables/model_comparison.csv`](./tables/model_comparison.csv) |
-
-### ▶️ Multiple-Seasons Analysis
-
-- Make sure you have the current directory correctly set in the project root
-
-- Run the `Multiple_seasons_analysis.R` file. 
-
-Outputs (preview below) are written to `images/` and `tables`
-
-
-
-### 📊 Outputs — Multiple Seasons 
-
-The following table maps each figure in the paper to its generating code and output file, with a live thumbnail preview.
-
-| Description  | Preview | Output file |
-|---|----|---|
-| Table with the posterior K probabilities — Table 4   | <a href="./tables/post_numb_block_across_years_table.tex"><img src="./tables/post_numb_block_across_years_table.tex" width="160" alt="Posterior of K across seasons"></a> | [`./tables/post_numb_block_across_years_table.tex`](./tables/post_numb_block_across_years_table.tex) |
-| Nº of players in top block by season — Figure 7  | <a href="./images/num_block_plot.png"><img src="./images/num_block_plot.png" width="160" alt="# players in top block"></a> | [`images/num_block_plot.png`](./images/num_block_plot.png) |
-| P(Top block) by season — Figure 8 |  <a href="./images/Ptop_across_time.png"><img src="./images/Ptop_across_time.png" width="160" alt="P(top block) by season"></a> | [`images/Ptop_across_time.png`](./images/Ptop_across_time.png) |
-| Shannon entropy across seasons — Figure 9 |  | <a href="./images/entropy_plot.png"><img src="./images/entropy_plot.png" width="160" alt="Entropy across seasons"></a> | [`images/entropy_plot.png`](./images/entropy_plot.png) |
-
-> All plots are saved to the `images/` folder, while the table in the `./tables` folder.
-> You can customize the output location by modifying the save paths in `postprocessing.R`.
-> From table 4, if you take the 2017/2018 row you also get table 2.
+> Set random seeds and MCMC settings inside `RUN_MCMC.R`. The script will create `results/` if needed.
 
 ---
 
-### ▶️ Appendix- Prior sentivity check.
+## 3) Single-season analysis
 
-- Make sure you have the current directory correctly set in the project root
+Reproduce figures/tables for one season (useful for paper insets, diagnostics, replication checks):
 
-- Run the `simulation.R` file. 
+```r
+source("single_season_analysis.R")
+```
 
-Outputs (preview below) are written to `simulation/`.
+### 📊 Outputs — Single-season
 
-
-
-### 📊 Output — Prior sensitivity
-
-The following table maps each figure in the paper to its generating code and output file, with a live thumbnail preview.
-
-| Description  | Preview | Output file |
-|---|----|---|
-| Prior sensitivity table — Table 5  | <a href="./images/num_block_plot.png"><img src="./tables/prior_sensitivity.csv" width="160" alt="#table"></a> | [`./tables/prior_sensitivity.csv`](./tables/prior_sensitivity.csv) |
-| Prior sensitivity plot (b = exp(psi(a))) — Figure 10  | <a href="./tables/post_numb_block_across_years_table.tex"><img src="./tables/post_numb_block_across_years_table.tex" width="160" alt="Posterior of K across seasons"></a> | [`./tables/post_numb_block_across_years_table.tex`](./tables/post_numb_block_across_years_table.tex) |
-| Prior sensitivity plot (b = 1)  | <a href="./tables/post_numb_block_across_years_table.tex"><img src="./tables/post_numb_block_across_years_table.tex" width="160" alt="Posterior of K across seasons"></a> | [`./tables/post_numb_block_across_years_table.tex`](./tables/post_numb_block_across_years_table.tex) |
-
-> All plots are saved to the `images/` folder, while the table in the `./tables` folder.
-> You can customize the output location by modifying the save paths in `postprocessing.R`.
+| Description                             | Script / Object                          | Output file                     |
+| --------------------------------------- | ---------------------------------------- | ------------------------------- |
+| Posterior adjacency matrix (Fig. 3)     | `postprocessing.R` / `reordered_heatmap` | `images/reordered_heatmap.png`  |
+| Assignment-probability heatmap (Fig. 4) | `postprocessing.R` / `ass_prob_plot`     | `images/ass_prob_plot.png`      |
+| Player skill (λ) uncertainty (Fig. 5)   | `postprocessing.R` / `plot_lambda`       | `images/lambda_uncertainty.png` |
 
 ---
 
+## 4) Model comparison (BT vs BT–SBM)
 
-### ▶️ Appendix- simulation study.
+```r
+source("Model_Comparison.R")  # saves CSV and the plot used in Fig. 6
+```
 
-- Make sure you have the current directory correctly set in the project root
+### 📊 Outputs — Model comparison
 
-- Run the `simulation.R` file. 
-
-Outputs (preview below) are written to `simulation/`.
-
-
-
-### 📊 Output — Simulation study
-
-The following table maps each figure in the paper to its generating code and output file, with a live thumbnail preview.
-
-| Description  | Preview | Output file |
-|---|----|---|
-| ARI plot — Figure 12  | <a href="./tables/post_numb_block_across_years_table.tex"><img src="./tables/post_numb_block_across_years_table.tex" width="160" alt="Posterior of K across seasons"></a> | [`./tables/post_numb_block_across_years_table.tex`](./tables/post_numb_block_across_years_table.tex) |
-| Contingency table — Table 6  | <a href="./images/num_block_plot.png"><img src="./images/num_block_plot.png" width="160" alt="# players in top block"></a> | [`images/num_block_plot.png`](./images/num_block_plot.png) |
-
-> All plots are saved to the `images/` folder, while the table in the `./tables` folder.
-> You can customize the output location by modifying the save paths in `postprocessing.R`.
+| Description                            | Script / Object      | Output file                   |
+| -------------------------------------- | -------------------- | ----------------------------- |
+| Model comparison plot (ΔELPD) — Fig. 6 | `Model_Comparison.R` | `images/DELPD_plot.png`       |
+| Model comparison table                 | `Model_Comparison.R` | `tables/model_comparison.csv` |
 
 ---
 
+## 5) Multiple-seasons analysis
 
+Ensure your working directory is the project root, then run:
+
+```r
+source("multiple_seasons_analysis.R")
+```
+
+Outputs (saved to `images/` and `tables/`):
+
+| Description                                       | Output file                                                                                               |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Posterior K across seasons — Table 4              | `tables/post_numb_block_across_years_table.tex`, `tables/table_rendering_images/p_across_years_table.png` |
+| Number of players in top block by season — Fig. 7 | `images/num_block_plot.png`                                                                               |
+| P(Top block) by season — Fig. 8                   | `images/Ptop_across_time.png`                                                                             |
+| Shannon entropy across seasons — Fig. 9           | `images/entropy_plot.png`                                                                                 |
+
+> From Table 4, the 2017/2018 row corresponds to Table 2 in the paper.
+
+---
+
+## 6) Appendix — Prior sensitivity
+
+From the project root, run:
+
+```r
+source("simulation/simulation.R")
+```
+
+### 📊 Outputs — Prior sensitivity
+
+| Description                                      | Output file                       |
+| ------------------------------------------------ | --------------------------------- |
+| Prior sensitivity table — Table 5                | `tables/prior_sensitivity.csv`    |
+| Prior sensitivity plot (b = exp(ψ(a))) — Fig. 10 | `images/prior_sens_b_exp_psi.png` |
+| Prior sensitivity plot (b = 1) — Fig. 11         | `images/prior_sens_b1.png`        |
+
+---
+
+## 7) Appendix — Simulation study
+
+From the project root, run:
+
+```r
+source("simulation/simulation.R")
+```
+
+### 📊 Outputs — Simulation study
+
+| Description                 | Output file                    |
+| --------------------------- | ------------------------------ |
+| Contingency table — Table 6 | `tables/contingency_table.tex` |
+| ARI plot — Fig. 12          | `images/ari_plot.png`          |
+
+> As above, plots go to `images/`, tables to `tables/`. Paths are configurable in `postprocessing.R`.
+
+---
+
+## 8) Appendix — 95% Credible Bounds
+
+From the project root, run:
+
+```r
+source("single_season_analysis.R")
+```
+
+### 📊 Outputs — Reordered adjacency matrices within the same credible ball
+
+| Description          | Output file                          |
+| -------------------- | ------------------------------------ |
+| Vertical upper bound | `images/reordered_heatmap_v_ub.png`  |
+| Vertical lower bound | `images/reordered_heatmap_v_lb.png`  |
+| Horizontal bound     | `images/reordered_heatmap_horiz.png` |
+
+---
+
+## Reproducibility & notes
+
+* **Seeds & chains:** set RNG seeds, number of iterations, burn-in, and thinning inside the scripts (`RUN_MCMC.R`, `postprocessing.R`).
+* **Parallelism:** computations are parallelized where possible (see comments in `RUN_MCMC.R`). Adjust the number of cores for your machine.
+* **Dependencies:** see the `DESCRIPTION` of the `BTSBM` package for imports.
+* **Session info:** for strict reproducibility, consider saving `sessionInfo()` when writing results.
+
+---
+
+## How to cite
+
+If you use this code, please cite the paper and the package:
+
+```bibtex
+@article{SantiFrielBT_SBM,
+  title   = {Bradley--Terry Stochastic Block Models},
+  author  = {Santi, Lapo and Friel, Nial},
+  journal = {XXXX},
+  year    = {XXXX},
+  note    = {Preprint / in review}
+}
+```
+
+---
+
+## License
+
+See `LICENSE` in the repo root.

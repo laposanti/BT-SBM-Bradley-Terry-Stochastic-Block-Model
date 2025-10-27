@@ -27,3 +27,4 @@ MAIN_SOURCE_file_augmented.R
 raw outputs/
 # Git metadata
 .gitattributes
+README.html
