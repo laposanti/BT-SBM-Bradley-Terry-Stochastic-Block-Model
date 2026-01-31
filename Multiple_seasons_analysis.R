@@ -16,9 +16,9 @@ library(ggside)
 # Set your project root 
 #setwd('/.../current folder')
 
-
+tennis_years <- readRDS("./data/ATP_2000_2025_SN_extended.rds")
 # Load full MCMC results across seasons
-res_list <- readRDS("results/MCMC_raw_output.rds")
+res_list <- readRDS("raw_output_ext/MCMC_raw_output_ext.rds")
 
 first_year <- 1999
 
@@ -90,16 +90,17 @@ for (yr in seq_along(res_list)) {
     season = season_label,
     avg_top_block_cnt = inf_i$avg_top_block_count
   ))
-
+  
+  w_ij <- tennis_years[[yr]]$Y_ij #pairwise success matrix
+  pl_df <- tennis_years[[yr]]$players_df #info about players
+  
   block_assignment_i <- inf_i$item_cluster_assignment_probs
   block_assignment_i$season <- season_label
-  block_assignment_i$pl_name    <- rownames(BTSBM::ATP_2000_2022[[yr]]$Y_ij)
-  block_assignment_i$eos_ranking <- BTSBM::ATP_2000_2022[[yr]]$players_df$last_rank
+  block_assignment_i$pl_name  <- pl_df$player_label
+  block_assignment_i$eos_ranking <- pl_df$last_rank
 
   # Clean underscores
-  block_assignment_i$pl_name <- gsub(pattern = "_",
-                                     replacement = " ",
-                                     x = block_assignment_i$pl_name)
+  block_assignment_i$pl_name <- pl_df$player_label
 
   prob_assignment_across_years <- rbind(prob_assignment_across_years, block_assignment_i)
 
@@ -137,9 +138,16 @@ latex_table <- kable(post_numb_block_across_years_wide, format = "latex", digits
 # ------------------------------------------------------------------------
 # Jittered scatterplot: Probability of top-block membership by season
 # ------------------------------------------------------------------------
+num_blocks_season <- post_numb_block_across_years %>%
+  dplyr::group_by(season) %>%
+  dplyr::summarise(
+    num_blocks = num_blocks[which.max(prob)],
+    .groups = "drop"
+  )
 
 prob_assignment_across_years <- prob_assignment_across_years %>%
-  left_join(num_blocks_season, by = 'season')
+  left_join(num_blocks_season, by = 'season') #num_blocks_season does not exist
+
 
 # Convert 'season' to a factor for nicer plotting
 prob_assignment_across_years$season <- factor(
@@ -147,9 +155,8 @@ prob_assignment_across_years$season <- factor(
   levels = unique(prob_assignment_across_years$season)
 )
 
-
 p_top_across_time = ggplot(prob_assignment_across_years, aes(x = season, y = Cluster_1)) +
-  geom_jitter(aes(color = factor(num_blocks)), width = 0.2, alpha = 0.6, size = 3) +
+  geom_jitter(aes(color = factor(num_blocks.y)), width = 0.2, alpha = 0.6, size = 3) +
   labs(
     x     = "Season",
     y     = "P(Top Block)",
@@ -215,24 +222,12 @@ entropy_plot<- entropy_per_season %>%
 # ------------------------------------------------------------------------
 # Bar plot: Estimated number of players in the top block by season
 # ------------------------------------------------------------------------
-num_block_plot = prob_assignment_across_years %>%
-  pivot_longer(
-    cols       = -c(season, pl_name, num_blocks,eos_ranking),
-    names_to   = "cluster",
-    values_to  = "prob"
-  ) %>%
-  group_by(season, pl_name) %>%
-  # For each player, choose the cluster with highest prob
-  reframe(ass_cluster = cluster[ which.max(prob) ]) %>%
-  ungroup() %>%
-  group_by(season) %>%
-  count(ass_cluster) %>%
-  # We only want the count of top-block membership
-  filter(ass_cluster == "Cluster_1") %>%
-  left_join(num_blocks_season, by = 'season') %>%
-  ggplot(aes(x = season, y = n, fill = num_blocks)) +
+num_block_plot = num_blocks_season%>%
+  mutate(num_blocks = as.factor(num_blocks)) %>%
+  ggplot(aes(x = season, y = num_blocks, fill = num_blocks)) +
   geom_col() +
   scale_fill_manual(values = c(
+    "2" = "#FFD700",  # giallo pallina
     "3" = "#2E8B57",  # verde Wimbledon
     "4" = "#D2691E",  # terra rossa
     "5" = "#1E90FF"   # blu cemento
@@ -253,10 +248,10 @@ num_block_plot = prob_assignment_across_years %>%
 # Extra: Player trajectory across the seasons
 # Compare P(top block) vs (100 - end-of-season ranking), for example
 # ------------------------------------------------------------------------
-pl_selected <- c("Rafael Nadal", "Roger Federer", "Novak Djokovic", "Andy Murray")
+pl_selected <- c("Nadal R.", "Federer R.", "Djokovic N.", "Murray A.", "Alcaraz C.", "Sinner J.")
 
 prob_assignment_across_years %>%
-  filter(pl_name %in% pl_selected) %>%
+  filter(pl_label %in% pl_selected) %>%
   ggplot(aes(x = season, y = Cluster_1 * 100, group = pl_name, color = pl_name)) +
   geom_line() +
   theme_minimal() +
@@ -274,19 +269,19 @@ prob_assignment_across_years %>%
 
 
 # Save the .tex file in the tables folder 
-writeLines(latex_table, "./tables/post_numb_block_across_years_table.tex")
+writeLines(latex_table, "./tables/post_numb_block_across_years_table1.tex")
 
 #Save the plots in the images folder
-ggsave(filename = "./images/entropy_plot.png",
+ggsave(filename = "./images/entropy_plot.pdf",
        plot = entropy_plot,
        width = 13, height=5)
 
-ggsave(filename = "./images/Ptop_across_time.png",
+ggsave(filename = "./images/Ptop_across_time.pdf",
        plot = p_top_across_time,
        width = 9, height=5)
 
 
-ggsave(filename = "./images/num_block_plot.png",
+ggsave(filename = "./images/num_block_plot.pdf",
        plot = num_block_plot,
        width=9,height = 5)
 

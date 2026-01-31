@@ -1,6 +1,7 @@
 /pp_checks
 .DS_Store
 .Rhistory
+raw_output_ext/
 data/simulated_data_K1.RDS
 data/simulated_data_K10.RDS
 data/simulated_data_K11.RDS

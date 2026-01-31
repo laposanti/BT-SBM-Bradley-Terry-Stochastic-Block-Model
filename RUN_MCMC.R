@@ -4,7 +4,7 @@
 
 # Set your project root 
 #setwd('/.../current folder')
-
+setwd("/Users/lapo_santi/Desktop/Nial/Bterry/BT-SBM-Bradley-Terry-Stochastic-Block-Model/")
 # Packages
 library(BTSBM)          # core package
 library(mcclust)        # comp.psm, vi.dist
@@ -14,7 +14,7 @@ library(filelock)
 library(MASS)           # mvrnorm
 
 # Data
-tennis_years <- BTSBM::ATP_2000_2022
+tennis_years <- readRDS("./data/ATP_2000_2025_SN_extended.rds")
 
 # Derive season labels
 years <- names(tennis_years)
@@ -23,7 +23,7 @@ if (is.null(years) || !all(nzchar(years))) {
 }
 
 # Ensure results directory exists
-results_dir <- file.path(getwd(), "raw_output")
+results_dir <- file.path(getwd(), "raw_output_ext")
 if (!dir.exists(results_dir)) {
   dir.create(results_dir, recursive = TRUE)
   message(sprintf("Created results directory at: %s", results_dir))
@@ -76,7 +76,7 @@ for (i in seq_along(tennis_years)) {
 }
 
 # Save computations
-out_file <- file.path(results_dir, "MCMC_raw_output1.rds")
+out_file <- file.path(results_dir, "MCMC_raw_output_ext.rds")
 
 saveRDS(res_list, out_file)
 message(sprintf("Saved results to: %s", out_file))
