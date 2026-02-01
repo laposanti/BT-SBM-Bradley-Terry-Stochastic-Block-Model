@@ -26,7 +26,7 @@ has_pkg <- function(pkg) requireNamespace(pkg, quietly = TRUE)
 # 1) Paths (server friendly)
 # -----------------------------
 proj_dir <- normalizePath(Sys.getenv("PROJECT_DIR", getwd()), mustWork = FALSE)
-data_dir <- file.path(proj_dir, "data")
+
 res_dir  <- file.path(proj_dir, "results")
 chunks_dir <- file.path(res_dir, "chunks")
 
@@ -34,9 +34,6 @@ dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(res_dir,  recursive = TRUE, showWarnings = FALSE)
 dir.create(chunks_dir, recursive = TRUE, showWarnings = FALSE)
 
-data_path_real <- file.path(data_dir, "2000_2022_data.rds")
-stopifnot(file.exists(data_path_real))
-data_real <- readRDS(data_path_real)
 
 # Use 3 observed designs (edit freely)
 N_list <- read_rds("./N_list_for_simulation.rds")
