@@ -30,7 +30,6 @@ proj_dir <- normalizePath(Sys.getenv("PROJECT_DIR", getwd()), mustWork = FALSE)
 res_dir  <- file.path(proj_dir, "results")
 chunks_dir <- file.path(res_dir, "chunks")
 
-dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(res_dir,  recursive = TRUE, showWarnings = FALSE)
 dir.create(chunks_dir, recursive = TRUE, showWarnings = FALSE)
 
