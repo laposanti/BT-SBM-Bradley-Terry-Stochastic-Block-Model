@@ -39,11 +39,7 @@ stopifnot(file.exists(data_path_real))
 data_real <- readRDS(data_path_real)
 
 # Use 3 observed designs (edit freely)
-N_list <- list(
-  design1 = data_real[[1]]$N_ij,
-  design2 = data_real[[2]]$N_ij,
-  design3 = data_real[[3]]$N_ij
-)
+N_list <- read_rds("./N_list_for_simulation.rds")
 
 # single merged output
 out_file <- file.path(res_dir, "simulation_comparison_all_models.csv")
