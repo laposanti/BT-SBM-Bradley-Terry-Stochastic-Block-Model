@@ -278,30 +278,138 @@ simulate_dataset_design_based <- function(N, K_target, gamma_true = 0.71, p_adj 
 # -----------------------------
 # 6) Relabel BT-SBM draws (pragmatic)
 # -----------------------------
-relabel_by_lambda_draws <- function(x_samples, lambda_samples) {
-  stopifnot(is.matrix(x_samples), is.matrix(lambda_samples))
-  stopifnot(nrow(x_samples) == nrow(lambda_samples), ncol(x_samples) == ncol(lambda_samples))
-  
+relabel_by_lambda = function (x_samples, lambda_samples) 
+{
+  stopifnot(is.matrix(x_samples))
   S <- nrow(x_samples)
-  x_out <- x_samples
+  N <- ncol(x_samples)
+  is_list_format <- is.list(lambda_samples)
+  get_lambda_vec <- function(iter) {
+    if (is_list_format) {
+      v <- lambda_samples[[iter]]
+      if (!is.numeric(v)) 
+        stop("lambda_samples[[iter]] must be numeric.")
+      v
+    }
+    else {
+      lambda_samples[iter, ]
+    }
+  }
+  x_relabeled <- matrix(NA_integer_, S, N)
+  lambda_per_item <- matrix(NA_real_, S, N)
+  cluster_lambda_ordered <- vector("list", S)
+  n_clusters_each_iter <- integer(S)
+  top_block_count_per_iter <- integer(S)
+  for (iter in seq_len(S)) {
+    xi <- as.integer(x_samples[iter, ])
+    occ_raw <- sort(unique(xi))
+    xi_seq <- match(xi, occ_raw)
+    K <- max(xi_seq)
+    lam_vec_full <- get_lambda_vec(iter)
+    lam_occ <- rep(NA_real_, length(occ_raw))
+    ok_idx <- occ_raw <= length(lam_vec_full)
+    lam_occ[ok_idx] <- lam_vec_full[occ_raw[ok_idx]]
+    ord <- order(lam_occ, decreasing = TRUE, na.last = TRUE)
+    occ_ord <- occ_raw[ord]
+    lam_ord <- lam_occ[ord]
+    if (anyNA(lam_ord)) 
+      lam_ord[is.na(lam_ord)] <- .Machine$double.xmin
+    raw_to_ord_id <- integer(max(occ_ord))
+    raw_to_ord_id[occ_ord] <- seq_len(K)
+    xi_new <- raw_to_ord_id[occ_raw[xi_seq]]
+    x_relabeled[iter, ] <- xi_new
+    lambda_per_item[iter, ] <- lam_ord[xi_new]
+    cluster_lambda_ordered[[iter]] <- lam_ord
+    n_clusters_each_iter[iter] <- K
+    top_block_count_per_iter[iter] <- sum(xi_new == 1L)
+  }
+  modal_K <- as.integer(names(which.max(table(n_clusters_each_iter))))
+  psm <- mcclust::comp.psm(x_samples)
+  partition_binder <- mcclust.ext::minbinder.ext(psm, cls.draw = x_samples, 
+                                                 method = "all")$cl[1, ]
+  partition_minVI <- mcclust.ext::minVI(psm, cls.draw = x_samples, 
+                                        method = "all")$cl[1, ]
+  x_ball <- mcclust.ext::credibleball(c.star = partition_minVI, 
+                                      cls.draw = x_samples, c.dist = "VI")
+  relabel_partition_by_item_mean_lambda <- function(z, lambda_item_mean) {
+    stopifnot(length(z) == length(lambda_item_mean))
+    z <- as.integer(z)
+    labs <- sort(unique(z))
+    cl_means <- vapply(labs, function(k) mean(lambda_item_mean[z == 
+                                                                 k], na.rm = TRUE), numeric(1))
+    ord <- order(cl_means, decreasing = TRUE)
+    new_ids <- seq_along(labs)
+    names(new_ids) <- labs[ord]
+    z_new <- new_ids[as.character(z)]
+    as.integer(z_new)
+  }
+  lambda_item_mean <- colMeans(lambda_per_item, na.rm = TRUE)
+  partition_minVI = relabel_partition_by_item_mean_lambda(partition_minVI, 
+                                                          lambda_item_mean)
+  partition_binder = relabel_partition_by_item_mean_lambda(partition_binder, 
+                                                           lambda_item_mean)
+  get_part <- function(obj, name1, name2) {
+    if (!is.null(obj[[name1]])) 
+      obj[[name1]]
+    else obj[[name2]]
+  }
+  c_lower_raw <- get_part(x_ball, "c.lower", "c.lowervert")
+  c_upper_raw <- get_part(x_ball, "c.upper", "c.uppervert")
+  c_horiz_raw <- x_ball$c.horiz
   
-  for (s in seq_len(S)) {
-    x <- x_samples[s, ]
-    lam <- lambda_samples[s, ]
-    labs <- sort(unique(x))
-    cl_mean <- sapply(labs, function(k) mean(lam[x == k]))
-    ord <- order(cl_mean, decreasing = TRUE)
-    map <- setNames(seq_along(labs), labs[ord])
-    x_out[s, ] <- as.integer(map[as.character(x)])
+  pick_row <- function(obj, centre) {
+    if (is.vector(obj) && length(obj) == N) return(as.integer(obj))
+    if (is.matrix(obj) && ncol(obj) == N) {
+      d <- apply(obj, 1, function(z) mcclust::vi.dist(as.integer(z), as.integer(centre)))
+      return(as.integer(obj[which.min(d), ]))
+    }
+    stop("Unexpected credibleball partition format.")
   }
   
-  list(x_samples_relabel = x_out, lambda_samples_relabel = lambda_samples)
+  c_lower_vec <- pick_row(c_lower_raw, partition_minVI)
+  c_upper_vec <- pick_row(c_upper_raw, partition_minVI)
+  c_horiz_vec <- pick_row(c_horiz_raw, partition_minVI)
+  
+  c_lower_rl <- relabel_partition_by_item_mean_lambda(c_lower_vec, lambda_item_mean)
+  c_upper_rl <- relabel_partition_by_item_mean_lambda(c_upper_vec, lambda_item_mean)
+  c_horiz_rl <- relabel_partition_by_item_mean_lambda(c_horiz_vec, lambda_item_mean)
+  
+  K_VI_upper <- length(unique(c_upper_rl))
+  K_VI_lower <- length(unique(c_lower_rl))
+  K_VI_horiz <- length(unique(c_lower_rl))
+  Kmax <- N
+  assignment_probs <- matrix(0, nrow = N, ncol = Kmax)
+  for (k in seq_len(Kmax)) {
+    assignment_probs[, k] <- colMeans(x_relabeled == k, na.rm = TRUE)
+  }
+  colnames(assignment_probs) <- paste0("Cluster_", seq_len(Kmax))
+  rownames(assignment_probs) <- paste0("Item_", seq_len(N))
+  assignment_probs_df <- as.data.frame(assignment_probs)
+  bc_tab <- table(n_clusters_each_iter)
+  block_count_df <- data.frame(num_blocks = as.integer(names(bc_tab)), 
+                               count = as.vector(bc_tab), prob = as.vector(bc_tab)/sum(bc_tab))
+  list(x_samples_relabel = x_relabeled, lambda_samples_relabel = lambda_per_item, 
+       cluster_lambda_ordered = cluster_lambda_ordered, co_clustering = psm, 
+       minVI_partition = partition_minVI, partition_binder = partition_binder, 
+       n_clusters_each_iter = n_clusters_each_iter, block_count_distribution = block_count_df, 
+       item_cluster_assignment_probs = assignment_probs_df, 
+       avg_top_block_count = mean(top_block_count_per_iter), 
+       top_block_count_per_iter = top_block_count_per_iter, 
+       credible_ball_lower_partition = c_lower_rl, credible_ball_upper_partition = c_upper_rl, 
+       credible_ball_horiz_partition = c_horiz_rl, K_VI_lower = K_VI_lower, 
+       K_VI_upper = K_VI_upper, K_VI_horiz = K_VI_horiz)
 }
+
+# Backwards/alternate name used elsewhere in this script
+relabel_by_lambda_draws <- relabel_by_lambda
 
 summarise_btsbm_clustering <- function(fit_btsbm, z_true, K_true) {
   x_samples <- fit_btsbm$x_samples
   lambda_samples <- fit_btsbm$lambda_samples
-  stopifnot(is.matrix(x_samples), is.matrix(lambda_samples))
+  stopifnot(is.matrix(x_samples))
+  if (!is.matrix(lambda_samples) && !is.list(lambda_samples)) {
+    stop("lambda_samples must be a matrix or a list of numeric vectors.")
+  }
   
   rel <- relabel_by_lambda_draws(x_samples, lambda_samples)
   x_rel <- rel$x_samples_relabel
@@ -310,10 +418,50 @@ summarise_btsbm_clustering <- function(fit_btsbm, z_true, K_true) {
   
   psm <- mcclust::comp.psm(x_rel)
   minVI <- mcclust.ext::minVI(psm)$cl
-  binder <- mcclust.ext::minbinder(psm)$cl
+  binder <- mcclust.ext::minbinder.ext(psm)$cl
   
   hpd <- coda::HPDinterval(coda::mcmc(K_draws))
   
+  tibble(
+    K_median = as.integer(round(median(K_draws), 0)),
+    K_mode = mode_int(K_draws),
+    pr_K_true = mean(K_draws == K_true),
+    HPD_low = as.integer(hpd[, 1]),
+    HPD_high = as.integer(hpd[, 2]),
+    ari_minVI = fossil::adj.rand.index(minVI, z_true),
+    vi_minVI  = mcclust::vi.dist(minVI, z_true),
+    ari_binder = fossil::adj.rand.index(binder, z_true),
+    vi_binder  = mcclust::vi.dist(binder, z_true)
+  )
+}
+
+summarise_rcbtl_clustering <- function(fit_rankclust, z_true, K_true) {
+  res_rcbtl <- fit_rankclust$res_rcbtl
+  if (is.null(res_rcbtl)) stop("RCBTL fit missing res_rcbtl.")
+  if (!is.data.frame(res_rcbtl)) res_rcbtl <- as.data.frame(res_rcbtl)
+
+  g_cols <- grep("^G[0-9]+$", names(res_rcbtl), value = TRUE)
+  if (length(g_cols) == 0) stop("RCBTL output missing G columns (partition draws).")
+
+  g_idx <- suppressWarnings(as.integer(sub("^G", "", g_cols)))
+  g_cols <- g_cols[order(g_idx)]
+  g_samples <- as.matrix(res_rcbtl[, g_cols, drop = FALSE])
+
+  # Relabel each draw to consecutive integers (1..K_draw) to avoid gaps in labels
+  g_samples_seq <- t(apply(g_samples, 1, function(g) {
+    g <- as.integer(g)
+    u <- sort(unique(g))
+    match(g, u)
+  }))
+
+  K_draws <- apply(g_samples_seq, 1, function(g) length(unique(g)))
+  psm <- mcclust::comp.psm(g_samples_seq)
+
+  minVI <- mcclust.ext::minVI(psm, cls.draw = g_samples_seq, method = "all")$cl[1, ]
+  binder <- mcclust.ext::minbinder.ext(psm, cls.draw = g_samples_seq, method = "all")$cl[1, ]
+
+  hpd <- coda::HPDinterval(coda::mcmc(K_draws))
+
   tibble(
     K_median = as.integer(round(median(K_draws), 0)),
     K_mode = mode_int(K_draws),
@@ -419,6 +567,8 @@ extract_bt_lambda_hat <- function(fit_bt) {
 
 extract_btsbm_lambda_hat <- function(fit_btsbm) {
   if (is.null(fit_btsbm$lambda_samples)) stop("BT-SBM fit missing lambda_samples.")
+  inf_i <- relabel_by_lambda(fit_btsbm$x_samples, fit_btsbm$lambda_samples)
+  fit_btsbm$lambda_samples <- inf_i$lambda_samples_relabel
   norm_geo1(colMeans(fit_btsbm$lambda_samples))
 }
 
@@ -432,6 +582,24 @@ extract_rankclust_lambda_hat <- function(fit_rankclust) {
 # -----------------------------
 # 9) One replicate runner
 # -----------------------------
+should_run_rcbtl <- function(design_name, rep_id, K_true) {
+  # Pearce/Erosheva (RCBTL) can be much slower; default is to run it only once.
+  # Control via env var:
+  # - RUN_RCBTL_MODE: "one" (default) | "all" | "none"
+  # - RCBTL_ONE_DESIGN: design name (default: first design)
+  # - RCBTL_ONE_REP: integer (default: 1)
+  # - RCBTL_ONE_K: integer (default: 3)
+  mode <- tolower(Sys.getenv("RUN_RCBTL_MODE", "one"))
+  if (mode == "all") return(TRUE)
+  if (mode == "none") return(FALSE)
+  
+  one_design <- Sys.getenv("RCBTL_ONE_DESIGN", names(N_list)[1])
+  one_rep <- as.integer(Sys.getenv("RCBTL_ONE_REP", "1"))
+  one_k <- as.integer(Sys.getenv("RCBTL_ONE_K", "3"))
+  
+  isTRUE(design_name == one_design && rep_id == one_rep && K_true == one_k)
+}
+
 run_one <- function(design_name, N, rep_id,
                     K_true, gamma_true, p_adj,
                     T_iter, T_burn,
@@ -486,28 +654,46 @@ run_one <- function(design_name, N, rep_id,
   }
   
   # ---- RCBTL
-  rc_fit <- time_fit(fit_rankclust_rcbtl(W, T_iter = T_iter, T_burn = T_burn, seed = seed))
-  if (is.na(rc_fit$error)) {
-    rc_hat <- extract_rankclust_lambda_hat(rc_fit$res)
-    perf <- compare_lambda(rc_hat, lambda_true)
-    rows[[length(rows) + 1]] <- bind_cols(
-      base_row,
-      tibble(model = "RCBTL",
-             time_user = unname(rc_fit$time["user.self"]),
-             time_sys = unname(rc_fit$time["sys.self"]),
-             time_elapsed = unname(rc_fit$time["elapsed"]),
-             fit_error = NA_character_),
-      perf
-    )
+  if (should_run_rcbtl(design_name, rep_id, K_true)) {
+    rc_fit <- time_fit(fit_rankclust_rcbtl(W, T_iter = T_iter, T_burn = T_burn, seed = seed))
+    if (is.na(rc_fit$error)) {
+      rc_hat <- extract_rankclust_lambda_hat(rc_fit$res)
+      perf <- compare_lambda(rc_hat, lambda_true)
+      cl_summ <- summarise_rcbtl_clustering(rc_fit$res, z_true = z_true, K_true = K_true)
+      rows[[length(rows) + 1]] <- bind_cols(
+        base_row,
+        tibble(model = "RCBTL",
+               time_user = unname(rc_fit$time["user.self"]),
+               time_sys = unname(rc_fit$time["sys.self"]),
+               time_elapsed = unname(rc_fit$time["elapsed"]),
+               fit_error = NA_character_),
+        perf,
+        cl_summ
+      )
+    } else {
+      rows[[length(rows) + 1]] <- bind_cols(
+        base_row,
+        tibble(model = "RCBTL",
+               time_user = unname(rc_fit$time["user.self"]),
+               time_sys = unname(rc_fit$time["sys.self"]),
+               time_elapsed = unname(rc_fit$time["elapsed"]),
+               fit_error = rc_fit$error),
+        tibble(rmse = NA_real_, mae = NA_real_, spearman = NA_real_, kendall = NA_real_, pearson = NA_real_,
+               K_median = NA_integer_, K_mode = NA_integer_, pr_K_true = NA_real_,
+               HPD_low = NA_integer_, HPD_high = NA_integer_,
+               ari_minVI = NA_real_, vi_minVI = NA_real_, ari_binder = NA_real_, vi_binder = NA_real_)
+      )
+    }
   } else {
     rows[[length(rows) + 1]] <- bind_cols(
       base_row,
       tibble(model = "RCBTL",
-             time_user = unname(rc_fit$time["user.self"]),
-             time_sys = unname(rc_fit$time["sys.self"]),
-             time_elapsed = unname(rc_fit$time["elapsed"]),
-             fit_error = rc_fit$error),
-      tibble(rmse = NA_real_, mae = NA_real_, spearman = NA_real_, kendall = NA_real_, pearson = NA_real_)
+             time_user = NA_real_, time_sys = NA_real_, time_elapsed = NA_real_,
+             fit_error = "SKIPPED_RCBTL_NOT_SELECTED"),
+      tibble(rmse = NA_real_, mae = NA_real_, spearman = NA_real_, kendall = NA_real_, pearson = NA_real_,
+             K_median = NA_integer_, K_mode = NA_integer_, pr_K_true = NA_real_,
+             HPD_low = NA_integer_, HPD_high = NA_integer_,
+             ari_minVI = NA_real_, vi_minVI = NA_real_, ari_binder = NA_real_, vi_binder = NA_real_)
     )
   }
   
@@ -590,13 +776,13 @@ merge_chunks_to_csv <- function(chunk_files, out_file) {
 # 11) Simulation grid + run
 # -----------------------------
 K_grid <- c(3, 5, 7)
-R_reps <- as.integer(Sys.getenv("N_REPS", "10"))
+R_reps <- as.integer(Sys.getenv("N_REPS", "1"))
 
 gamma_true <- 0.71
 p_adj <- 0.85
 
-T_iter <- as.integer(Sys.getenv("T_ITER", "5000"))
-T_burn <- as.integer(Sys.getenv("T_BURN", "1000"))
+T_iter <- as.integer(Sys.getenv("T_ITER", "10000"))
+T_burn <- as.integer(Sys.getenv("T_BURN", "2000"))
 
 a_fit <- 2
 gamma_fit <- 0.71
@@ -616,10 +802,11 @@ clusterExport(
   cl,
   varlist = c(
     "N_list", "simulate_dataset_design_based", "run_one",
+    "should_run_rcbtl",
     "sample_gnedin_labels", "draw_gnedin_sizes_given_K", "make_z_activity_to_smallest",
     "check_top_player_in_smallest_cluster", "make_lambda_from_padj", "simulate_W_from_blocks",
     "time_fit", "norm_geo1", "compare_lambda", "wins_to_Pi", "mode_int",
-    "relabel_by_lambda_draws", "summarise_btsbm_clustering",
+    "relabel_by_lambda_draws", "summarise_btsbm_clustering", "summarise_rcbtl_clustering",
     "has_pkg", "get_fun", "fit_bt", "fit_btsbm", "fit_optional_bt_sbm",
     "maybe_source_rankclust_code", "fit_rankclust_rcbtl",
     "extract_bt_lambda_hat", "extract_btsbm_lambda_hat", "extract_rankclust_lambda_hat"
