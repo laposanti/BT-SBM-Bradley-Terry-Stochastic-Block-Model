@@ -50,7 +50,7 @@ seed_base <- as.integer(Sys.getenv("SEED_BASE", "123"))
 manual_map <- Sys.getenv("DESIGN_YEAR_MAP", "")
 
 # -----------------------------
-# Minimal simulation helpers (mirrors new_sim_study.R)
+# Minimal simulation helpers (mirrors RUN_SIMULATION_STUDY.R)
 # -----------------------------
 
 norm_geo1 <- function(v) {

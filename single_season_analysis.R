@@ -18,12 +18,6 @@ library(knitr)
 library(tibble)
 
 
-
-
-
-
-
-
 # -------------------------------
 # Single seasons Analysis
 # -------------------------------
@@ -32,17 +26,21 @@ library(tibble)
 # 0. SETUP
 # ============================================================
 
-# Set working directory (change as needed)
-current_wd <- "/Users/lapo_santi/Desktop/Nial/Bterry/BT-SBM-Bradley-Terry-Stochastic-Block-Model/"
-setwd(current_wd)
+# If run via Rscript, move to this script's folder so relative paths work.
+args_full <- commandArgs(trailingOnly = FALSE)
+file_arg <- grep("^--file=", args_full, value = TRUE)
+if (length(file_arg) == 1L) {
+  script_path <- sub("^--file=", "", file_arg)
+  script_path <- gsub("~\\+~", " ", script_path)
+  script_dir <- dirname(normalizePath(script_path))
+  setwd(script_dir)
+}
 
 if (!dir.exists("./images"))  dir.create("./images",  recursive = TRUE)
 if (!dir.exists("./results")) dir.create("./results", recursive = TRUE)
 
-source("plotting_functions_temp.R")
-
 # --- Load data and MCMC output ---
-data <- readRDS("./data/ATP_2000_2026_SN_extended.rds")
+data <- BTSBM::load_btsbm_data()
 res  <- readRDS("./raw_output_ext/MCMC_raw_output_ext.rds")
 
 # Season of interest
@@ -204,7 +202,7 @@ p_assignment <- plot_assignment_probabilities(
   max_n_clust = 4
 )
 
-ggsave(filename = "./images/plot_ass.pdf", plot = p_assignment, height = 8, width = 11)
+ggsave(filename = "./images/plot_assignment.pdf", plot = p_assignment, height = 8, width = 11)
 
 
 # ============================================================

@@ -10,7 +10,11 @@ if (length(file_arg) == 1L) {
   setwd(script_dir)
 }
 
-results_csv <- "./results1.csv"
+if (!dir.exists("./results")) dir.create("./results", recursive = TRUE)
+if (!dir.exists("./images")) dir.create("./images", recursive = TRUE)
+if (!dir.exists("./tables")) dir.create("./tables", recursive = TRUE)
+
+results_csv <- "./results/model_comparison_26_seasons_bt_vs_btsbm.csv"
 out_plot    <- "./images/DELPD_plot1.png"
 out_plot_pdf <- "./images/DELPD_plot1.pdf"
 out_table_by_season <- "./tables/model_comparison_by_season.tex"
@@ -22,7 +26,7 @@ out_table_summary   <- "./tables/model_comparison_summary.tex"
 run_mode <- Sys.getenv("RUN_MODE", unset = "all")
 only_last_n <- as.integer(Sys.getenv("ONLY_LAST_N", unset = "3"))
 
-# Also allow `Rscript Model comparison.R append` to switch modes
+# Also allow `Rscript RUN_MODEL_COMPARISON_26_SEASONS_BT_vs_BTSBM.R append` to switch modes
 args_trailing <- commandArgs(trailingOnly = TRUE)
 if (length(args_trailing) >= 1L && nzchar(args_trailing[1])) {
   if (tolower(args_trailing[1]) %in% c("append", "append_missing_last_n")) {
@@ -249,7 +253,7 @@ results_all <- results_all %>%
 
 utils::write.csv(x = results_all, results_csv, row.names = FALSE)
 
-results_all = read.csv("./results1.csv") 
+results_all <- utils::read.csv(results_csv)
 ## 4a.  ΔELPD (cluster – simple)
 ggplot(results_all, aes(season, elpd_diff)) +
   geom_hline(yintercept = 0, linetype = 2) +
@@ -297,8 +301,6 @@ DELPD_plot <- ggplot(results_plot_df, aes(x = season_f)) +
 ggsave(filename = out_plot, plot = DELPD_plot, width = 13, height = 5)
 ggsave(filename = out_plot_pdf, plot = DELPD_plot, width = 13, height = 5)
 
-
-if (!dir.exists("./tables")) dir.create("./tables", recursive = TRUE)
 
 by_season_tab <- results_all %>%
   dplyr::mutate(

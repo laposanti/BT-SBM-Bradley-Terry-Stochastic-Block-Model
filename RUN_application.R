@@ -1,10 +1,16 @@
 # --------------------------------
-# Run the code on each Tennis year
+# Run BT-SBM on each tennis season
 # --------------------------------
 
-# Set your project root 
-#setwd('/.../current folder')
-setwd("/Users/lapo_santi/Desktop/Nial/Bterry/BT-SBM-Bradley-Terry-Stochastic-Block-Model/")
+# If run via Rscript, move to this script's folder so relative paths work.
+args_full <- commandArgs(trailingOnly = FALSE)
+file_arg <- grep("^--file=", args_full, value = TRUE)
+if (length(file_arg) == 1L) {
+  script_path <- sub("^--file=", "", file_arg)
+  script_path <- gsub("~\\+~", " ", script_path)
+  script_dir <- dirname(normalizePath(script_path))
+  setwd(script_dir)
+}
 # Packages
 library(BTSBM)          # core package
 library(mcclust)        # comp.psm, vi.dist

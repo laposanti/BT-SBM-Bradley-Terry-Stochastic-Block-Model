@@ -5,6 +5,16 @@
 #   Output: chunk CSVs + merged single big CSV
 # ================================================================
 
+# If run via Rscript, move to this script's folder so relative paths work.
+args_full <- commandArgs(trailingOnly = FALSE)
+file_arg <- grep("^--file=", args_full, value = TRUE)
+if (length(file_arg) == 1L) {
+  script_path <- sub("^--file=", "", file_arg)
+  script_path <- gsub("~\\+~", " ", script_path)
+  script_dir <- dirname(normalizePath(script_path))
+  setwd(script_dir)
+}
+
 # -----------------------------
 # 0) Packages
 # -----------------------------
@@ -35,7 +45,7 @@ dir.create(chunks_dir, recursive = TRUE, showWarnings = FALSE)
 
 
 # Use 3 observed designs (edit freely)
-N_list <- read_rds("./N_list_for_simulation.rds")
+N_list <- read_rds(file.path(proj_dir, "N_list_for_simulation.rds"))
 
 # single merged output
 out_file <- file.path(res_dir, "simulation_comparison_all_models.csv")
@@ -43,6 +53,7 @@ out_file <- file.path(res_dir, "simulation_comparison_all_models.csv")
 # Optionally skip the expensive simulation step and only summarise an existing CSV.
 # Useful when you downloaded results from a server and just want tables/plots locally.
 skip_simulation <- isTRUE(as.logical(Sys.getenv("SKIP_SIMULATION", "FALSE")))
+skip_summary <- isTRUE(as.logical(Sys.getenv("SKIP_SUMMARY", "FALSE")))
 
 # overwrite policy (disabled when SKIP_SIMULATION=TRUE)
 if (!skip_simulation && isTRUE(as.logical(Sys.getenv("OVERWRITE_RESULTS", "TRUE")))) {
@@ -300,132 +311,12 @@ simulate_dataset_design_based <- function(N, K_target, gamma_true = 0.71, p_adj 
 }
 
 # -----------------------------
-# 6) Relabel BT-SBM draws (pragmatic)
+# 6) Relabel BT-SBM draws
 # -----------------------------
-relabel_by_lambda = function (x_samples, lambda_samples) 
-{
-  stopifnot(is.matrix(x_samples))
-  S <- nrow(x_samples)
-  N <- ncol(x_samples)
-  is_list_format <- is.list(lambda_samples)
-  get_lambda_vec <- function(iter) {
-    if (is_list_format) {
-      v <- lambda_samples[[iter]]
-      if (!is.numeric(v)) 
-        stop("lambda_samples[[iter]] must be numeric.")
-      v
-    }
-    else {
-      lambda_samples[iter, ]
-    }
-  }
-  x_relabeled <- matrix(NA_integer_, S, N)
-  lambda_per_item <- matrix(NA_real_, S, N)
-  cluster_lambda_ordered <- vector("list", S)
-  n_clusters_each_iter <- integer(S)
-  top_block_count_per_iter <- integer(S)
-  for (iter in seq_len(S)) {
-    xi <- as.integer(x_samples[iter, ])
-    occ_raw <- sort(unique(xi))
-    xi_seq <- match(xi, occ_raw)
-    K <- max(xi_seq)
-    lam_vec_full <- get_lambda_vec(iter)
-    lam_occ <- rep(NA_real_, length(occ_raw))
-    ok_idx <- occ_raw <= length(lam_vec_full)
-    lam_occ[ok_idx] <- lam_vec_full[occ_raw[ok_idx]]
-    ord <- order(lam_occ, decreasing = TRUE, na.last = TRUE)
-    occ_ord <- occ_raw[ord]
-    lam_ord <- lam_occ[ord]
-    if (anyNA(lam_ord)) 
-      lam_ord[is.na(lam_ord)] <- .Machine$double.xmin
-    raw_to_ord_id <- integer(max(occ_ord))
-    raw_to_ord_id[occ_ord] <- seq_len(K)
-    xi_new <- raw_to_ord_id[occ_raw[xi_seq]]
-    x_relabeled[iter, ] <- xi_new
-    lambda_per_item[iter, ] <- lam_ord[xi_new]
-    cluster_lambda_ordered[[iter]] <- lam_ord
-    n_clusters_each_iter[iter] <- K
-    top_block_count_per_iter[iter] <- sum(xi_new == 1L)
-  }
-  modal_K <- as.integer(names(which.max(table(n_clusters_each_iter))))
-  psm <- mcclust::comp.psm(x_samples)
-  partition_binder <- mcclust.ext::minbinder.ext(psm, cls.draw = x_samples, 
-                                                 method = "all")$cl[1, ]
-  partition_minVI <- mcclust.ext::minVI(psm, cls.draw = x_samples, 
-                                        method = "all")$cl[1, ]
-  x_ball <- mcclust.ext::credibleball(c.star = partition_minVI, 
-                                      cls.draw = x_samples, c.dist = "VI")
-  relabel_partition_by_item_mean_lambda <- function(z, lambda_item_mean) {
-    stopifnot(length(z) == length(lambda_item_mean))
-    z <- as.integer(z)
-    labs <- sort(unique(z))
-    cl_means <- vapply(labs, function(k) mean(lambda_item_mean[z == 
-                                                                 k], na.rm = TRUE), numeric(1))
-    ord <- order(cl_means, decreasing = TRUE)
-    new_ids <- seq_along(labs)
-    names(new_ids) <- labs[ord]
-    z_new <- new_ids[as.character(z)]
-    as.integer(z_new)
-  }
-  lambda_item_mean <- colMeans(lambda_per_item, na.rm = TRUE)
-  partition_minVI = relabel_partition_by_item_mean_lambda(partition_minVI, 
-                                                          lambda_item_mean)
-  partition_binder = relabel_partition_by_item_mean_lambda(partition_binder, 
-                                                           lambda_item_mean)
-  get_part <- function(obj, name1, name2) {
-    if (!is.null(obj[[name1]])) 
-      obj[[name1]]
-    else obj[[name2]]
-  }
-  c_lower_raw <- get_part(x_ball, "c.lower", "c.lowervert")
-  c_upper_raw <- get_part(x_ball, "c.upper", "c.uppervert")
-  c_horiz_raw <- x_ball$c.horiz
-  
-  pick_row <- function(obj, centre) {
-    if (is.vector(obj) && length(obj) == N) return(as.integer(obj))
-    if (is.matrix(obj) && ncol(obj) == N) {
-      d <- apply(obj, 1, function(z) mcclust::vi.dist(as.integer(z), as.integer(centre)))
-      return(as.integer(obj[which.min(d), ]))
-    }
-    stop("Unexpected credibleball partition format.")
-  }
-  
-  c_lower_vec <- pick_row(c_lower_raw, partition_minVI)
-  c_upper_vec <- pick_row(c_upper_raw, partition_minVI)
-  c_horiz_vec <- pick_row(c_horiz_raw, partition_minVI)
-  
-  c_lower_rl <- relabel_partition_by_item_mean_lambda(c_lower_vec, lambda_item_mean)
-  c_upper_rl <- relabel_partition_by_item_mean_lambda(c_upper_vec, lambda_item_mean)
-  c_horiz_rl <- relabel_partition_by_item_mean_lambda(c_horiz_vec, lambda_item_mean)
-  
-  K_VI_upper <- length(unique(c_upper_rl))
-  K_VI_lower <- length(unique(c_lower_rl))
-  K_VI_horiz <- length(unique(c_lower_rl))
-  Kmax <- N
-  assignment_probs <- matrix(0, nrow = N, ncol = Kmax)
-  for (k in seq_len(Kmax)) {
-    assignment_probs[, k] <- colMeans(x_relabeled == k, na.rm = TRUE)
-  }
-  colnames(assignment_probs) <- paste0("Cluster_", seq_len(Kmax))
-  rownames(assignment_probs) <- paste0("Item_", seq_len(N))
-  assignment_probs_df <- as.data.frame(assignment_probs)
-  bc_tab <- table(n_clusters_each_iter)
-  block_count_df <- data.frame(num_blocks = as.integer(names(bc_tab)), 
-                               count = as.vector(bc_tab), prob = as.vector(bc_tab)/sum(bc_tab))
-  list(x_samples_relabel = x_relabeled, lambda_samples_relabel = lambda_per_item, 
-       cluster_lambda_ordered = cluster_lambda_ordered, co_clustering = psm, 
-       minVI_partition = partition_minVI, partition_binder = partition_binder, 
-       n_clusters_each_iter = n_clusters_each_iter, block_count_distribution = block_count_df, 
-       item_cluster_assignment_probs = assignment_probs_df, 
-       avg_top_block_count = mean(top_block_count_per_iter), 
-       top_block_count_per_iter = top_block_count_per_iter, 
-       credible_ball_lower_partition = c_lower_rl, credible_ball_upper_partition = c_upper_rl, 
-       credible_ball_horiz_partition = c_horiz_rl, K_VI_lower = K_VI_lower, 
-       K_VI_upper = K_VI_upper, K_VI_horiz = K_VI_horiz)
+# Use the package implementation so this script stays aligned with BTSBM updates.
+relabel_by_lambda_draws <- function(x_samples, lambda_samples) {
+  BTSBM::relabel_by_lambda(x_samples, lambda_samples)
 }
-
-# Backwards/alternate name used elsewhere in this script
-relabel_by_lambda_draws <- relabel_by_lambda
 
 summarise_btsbm_clustering <- function(fit_btsbm, z_true, K_true) {
   x_samples <- fit_btsbm$x_samples
@@ -666,7 +557,7 @@ extract_bt_lambda_hat <- function(fit_bt) {
 
 extract_btsbm_lambda_hat <- function(fit_btsbm) {
   if (is.null(fit_btsbm$lambda_samples)) stop("BT-SBM fit missing lambda_samples.")
-  inf_i <- relabel_by_lambda(fit_btsbm$x_samples, fit_btsbm$lambda_samples)
+  inf_i <- relabel_by_lambda_draws(fit_btsbm$x_samples, fit_btsbm$lambda_samples)
   fit_btsbm$lambda_samples <- inf_i$lambda_samples_relabel
   norm_geo1(colMeans(fit_btsbm$lambda_samples))
 }
@@ -1496,8 +1387,12 @@ if (isTRUE(as.logical(Sys.getenv("RERUN_BT_ONLY", "FALSE")))) {
   rerun_bt_only_and_patch(out_file, chunks_dir, N_list)
 }
 
-# Always summarise the merged CSV (whether we just created it or you downloaded it).
-summarise_results_csv(out_file, res_dir)
+# Summarise unless explicitly disabled (used by run-only wrapper script).
+if (!skip_summary) {
+  summarise_results_csv(out_file, res_dir)
+} else {
+  message("SKIP_SUMMARY=TRUE: skipping summary generation for this run.")
+}
 
 # -----------------------------
 # 12) (COMMENTED) LaTeX printing
@@ -1608,15 +1503,13 @@ summarise_results_csv(out_file, res_dir)
 # 
 # 
 # 
+if (isTRUE(as.logical(Sys.getenv("RUN_DEBUG_PLOTS", "FALSE")))) {
+  partitions_posterior <- read.csv("./results/rcbtl_baseline_design1_K3_seed123/comparison_pearce_ereshova_design1_K3_iters10000_runs1_partitions.csv")
+  x_hat_btsbm <- partitions_posterior %>%
+    filter(model == "BT-SBM") %>%
+    pull(cluster)
 
-
-partitions_posterior = read.csv("./results/pe_comparison_designdefault_K3_seed123_job284062/comparison_pearce_ereshova_design1_K3_iters10000_runs1_partitions.csv")
-partitions_posterior$model
-x_hat_btsbm = partitions_posterior%>%
-  filter(model == 'BT-SBM')%>%
-  pull(cluster)
-
-plot_block_adjacency(fit$btsbm, w_ij = as.matrix(fit$w_ij),x_hat = x_hat_btsbm)
-
-fit  = readRDS("results/pearce_ereshova_2017_raw_results.rds")
+  fit <- readRDS("results/pearce_ereshova_2017_raw_results.rds")
+  BTSBM::plot_block_adjacency(fit$btsbm, w_ij = as.matrix(fit$w_ij), x_hat = x_hat_btsbm)
+}
 
