@@ -23,7 +23,9 @@ suppressPackageStartupMessages({
 })
 
 res_dir <- "results"
+tab_dir <- "tables"
 if (!dir.exists(res_dir)) dir.create(res_dir, recursive = TRUE)
+if (!dir.exists(tab_dir)) dir.create(tab_dir, recursive = TRUE)
 if (!dir.exists("images")) dir.create("images", recursive = TRUE)
 
 sim_csv <- file.path(res_dir, "simulation_comparison_all_models.csv")
@@ -68,7 +70,7 @@ recovery <- sim %>%
 recovery_out <- recovery %>%
   mutate(MAE_rel = ifelse(is.na(MAE_rel), "--", sprintf("%.3f", MAE_rel)))
 
-write_csv(recovery_out, file.path(res_dir, "table_btsbm_recovery_k357.csv"))
+write_csv(recovery_out, file.path(tab_dir, "table_btsbm_recovery_k357.csv"))
 
 tab_recovery <- knitr::kable(
   recovery_out,
@@ -79,7 +81,7 @@ tab_recovery <- knitr::kable(
 ) %>%
   kableExtra::kable_styling(latex_options = c("hold_position"))
 
-cat(tab_recovery, file = file.path(res_dir, "table_btsbm_recovery_k357.tex"))
+cat(tab_recovery, file = file.path(tab_dir, "table_btsbm_recovery_k357.tex"))
 
 # -----------------------------
 # Table 2: One-run baseline comparison (BT / RCBTL / BT-SBM)
@@ -108,7 +110,7 @@ baseline <- base %>%
   ) %>%
   arrange(factor(Model, levels = model_order))
 
-write_csv(baseline, file.path(res_dir, "table_rcbtl_baseline_one_run.csv"))
+write_csv(baseline, file.path(tab_dir, "table_rcbtl_baseline_one_run.csv"))
 
 tab_baseline <- knitr::kable(
   baseline,
@@ -119,14 +121,16 @@ tab_baseline <- knitr::kable(
 ) %>%
   kableExtra::kable_styling(latex_options = c("hold_position"))
 
-cat(tab_baseline, file = file.path(res_dir, "table_rcbtl_baseline_one_run.tex"))
+cat(tab_baseline, file = file.path(tab_dir, "table_rcbtl_baseline_one_run.tex"))
 
 # -----------------------------
 # ARI plot (BT-SBM recovery only)
 # -----------------------------
-ari_plot <- ggplot(recovery, aes(x = factor(`K*`), y = ARI, group = 1)) +
-  geom_line(linewidth = 0.8) +
-  geom_point(size = 2.2) +
+ari_raw <- sim %>%
+  filter(model == "BT-SBM", K_true %in% c(3, 5, 7))
+
+ari_plot <- ggplot(ari_raw, aes(x = factor(K_true), y = ari_minVI)) +
+  geom_boxplot(fill = "forestgreen", colour = "black", outlier.size = 1.2) +
   theme_bw(base_size = 11) +
   labs(
     title = "BT-SBM ARI recovery by K*",
@@ -143,8 +147,8 @@ ggsave(
 )
 
 message("Wrote:")
-message("- ", file.path(res_dir, "table_btsbm_recovery_k357.csv"))
-message("- ", file.path(res_dir, "table_btsbm_recovery_k357.tex"))
-message("- ", file.path(res_dir, "table_rcbtl_baseline_one_run.csv"))
-message("- ", file.path(res_dir, "table_rcbtl_baseline_one_run.tex"))
+message("- ", file.path(tab_dir, "table_btsbm_recovery_k357.csv"))
+message("- ", file.path(tab_dir, "table_btsbm_recovery_k357.tex"))
+message("- ", file.path(tab_dir, "table_rcbtl_baseline_one_run.csv"))
+message("- ", file.path(tab_dir, "table_rcbtl_baseline_one_run.tex"))
 message("- images/ARI_plot.png")

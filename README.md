@@ -2,7 +2,7 @@
 
 **Lapo Santi, Nial Friel — University College Dublin**
 
-This repository contains all code to reproduce the figures, tables, and analyses in the paper *Bradley–Terry Stochastic Block Models* (Santi & Friel, AOAS 2025). Model fitting and MCMC are provided by the R package **[`BTSBM`](https://github.com/laposanti/BTSBM)**.
+This repository contains all code to reproduce the figures, tables, and analyses in the paper *Bradley–Terry Stochastic Block Models* (Santi & Friel, Annals of Applied Statistics, 2026). Model fitting and MCMC are provided by the R package **[`BTSBM`](https://github.com/laposanti/BTSBM)**.
 
 ---
 
@@ -44,7 +44,7 @@ network_feature_comparison.R        # validation helper — simulated vs real ne
 N_list_for_simulation.rds           # match-count designs used by simulation scripts
 data/                               # ATP match data 2000–2025/26
 raw_output_ext/                     # MCMC posterior draws (written by RUN_application.R)
-results/                            # summary CSVs and LaTeX tables
+results/                            # summary CSVs from simulation and model-comparison runs
 images/                             # all figures (PDF + PNG copies for GitHub preview)
 tables/                             # LaTeX tables (+ PNG previews in table_rendering_images/)
 AOAS2193_Santi_final_files/         # final paper source (LaTeX)
@@ -63,8 +63,8 @@ Every figure and table in the paper (and supplement) is linked below to the scri
 |---|---|---|---|
 | **Fig. 1** | Raw adjacency matrix ordered by ATP ranking | `single_season_analysis.R` | `images/exploratory_reorderdered_bw.pdf` |
 | **Fig. 2** | DAG + Algorithm 1 (Gibbs sampler) | TikZ / `algorithmic` in `AOAS2193_Santi_final_files/main.tex` | — |
-| **Table 1** | BT–SBM recovery by target K★, averaged across designs | `analyze_sim_study_results.R` | `results/table_btsbm_recovery_k357.tex` |
-| **Table 2** | Baseline comparison: BT, RCBTL (Pearce & Erosheva 2025), BT–SBM | `analyze_sim_study_results.R` | `results/table_rcbtl_baseline_one_run.tex` |
+| **Table 1** *(main text)* | BT–SBM recovery by target K★, averaged across designs | `analyze_sim_study_results.R` | `tables/table_btsbm_recovery_k357.tex` |
+| **Table 2** *(main text)* | Baseline comparison: BT, RCBTL (Pearce & Erosheva 2025), BT–SBM | `analyze_sim_study_results.R` | `tables/table_rcbtl_baseline_one_run.tex` |
 | **Table 3** | Posterior distribution of K for the 2017 ATP season | `single_season_analysis.R` | printed to console; draws from `raw_output_ext/MCMC_raw_output_ext.rds` |
 | **Fig. 3** | Reordered adjacency matrix (2017, K̂ = 3, VI point estimate) | `single_season_analysis.R` | `images/reordered_heatmap_point_estimatebw.pdf` |
 | **Fig. 4** | Posterior assignment probabilities p(xᵢ = k \| W), K = 4 | `single_season_analysis.R` | `images/plot_ass.pdf` |
@@ -78,8 +78,8 @@ Every figure and table in the paper (and supplement) is linked below to the scri
 | Paper element | Appendix | Script | Output |
 |---|---|---|---|
 | Prior-sensitivity plots (b = exp(ψ(a)) and b = 1) | App. B | `sensitivity_analysis.R` | `images/hyperprior_plots/prior_b_exp_psi_a.png`, `prior_b_one.png` |
-| BT–SBM recovery table (K★ = 3,5,7) | App. D | `analyze_sim_study_results.R` | `results/table_btsbm_recovery_k357.tex` |
-| RCBTL baseline comparison table (one-run) | App. D | `analyze_sim_study_results.R` | `results/table_rcbtl_baseline_one_run.tex` |
+| BT–SBM recovery table, extended (K★ = 3,5,7, with Pr(K=K★) and runtime) | App. D | hardcoded in `AOAS2193_Santi_final_files/Supplementary Material.tex` | — |
+| RCBTL baseline comparison table, extended (with Gelman–Rubin diagnostics) | App. D | hardcoded in `AOAS2193_Santi_final_files/Supplementary Material.tex` | — |
 | Baseline raw fit outputs | App. D | `RUN_SIMULATION_STUDY.R` | `results/rcbtl_baseline_design1_K3_seed123/` |
 | Credible-ball boundary partitions (lower/upper/horiz.) | App. E | `single_season_analysis.R` | `images/reordered_heatmap_v_ubbw.pdf`, `images/reordered_heatmap_v_lbbw.pdf`, `images/reordered_heatmap_horizbw.pdf` |
 | Season-by-season posterior K table | App. F | `Multiple_seasons_analysis.R` | `tables/post_numb_block_across_years_table1.tex` |
@@ -161,8 +161,8 @@ Rscript analyze_sim_study_results.R
 
 | Output | Paper element | Preview |
 |---|---|---|
-| `results/table_btsbm_recovery_k357.tex` | **Table 1** BT–SBM recovery by K★ | <a href="./tables/table_rendering_images/contingency_table.png"><img src="./tables/table_rendering_images/contingency_table.png" width="140" alt="Recovery table"></a> |
-| `results/table_rcbtl_baseline_one_run.tex` | **Table 2** baseline comparison | — |
+| `tables/table_btsbm_recovery_k357.tex` | **Table 1** *(main text)* BT–SBM recovery by K★ | <a href="./tables/table_rendering_images/table_preview_Sim3-7.png"><img src="./tables/table_rendering_images/table_preview_Sim3-7.png" width="140" alt="Recovery table"></a> |
+| `tables/table_rcbtl_baseline_one_run.tex` | **Table 2** *(main text)* baseline comparison | <a href="./tables/table_rendering_images/table_preview_RCBTL.png"><img src="./tables/table_rendering_images/table_preview_RCBTL.png" width="140" alt="RCBTL baseline table"></a> |
 | `images/ARI_plot.png` | **App. D** ARI/VI performance plot | <a href="./images/ARI_plot.png"><img src="./images/ARI_plot.png" width="140" alt="ARI plot"></a> |
 
 ### Step 4a — Appendix F: LOO/ELPD model comparison across all seasons
@@ -219,11 +219,12 @@ Runs the BT–SBM under `a ∈ {1, 2, 3, 4}` on a simulated dataset and plots VI
 ## How to cite
 
 ```bibtex
-@article{SantiFriel2025BTSBM,
+@article{SantiFriel2026BTSBM,
   title   = {Bradley--Terry Stochastic Block Models},
   author  = {Santi, Lapo and Friel, Nial},
   journal = {Annals of Applied Statistics},
-  year    = {2025}
+  year    = {2026},
+  note    = {DOI, volume, and page numbers yet to be received}
 }
 ```
 
