@@ -1,0 +1,14 @@
+\begin{table}
+
+\caption{Post-hoc comparison: RCBTL vs BT vs BT-SBM}
+\centering
+\begin{tabular}[t]{lrrrrrrrrrlrrrrrrrrrrrrrrrrrrrr}
+\toprule
+design & n & n\_pairs & K\_true & run & seed & T\_iter & T\_burn & gamma\_true & p\_adj & model & rmse & spearman & ari & vi & K\_mean & K\_ci\_low & K\_ci\_high & elpd\_loo & elpd\_loo\_se & p\_loo & looic & loo\_draws\_used & fit\_n\_chains & fit\_n\_iters & rhat\_lambda\_max & ess\_lambda\_min & ess\_lambda\_median & rhat\_K\_max & ess\_K\_min & ess\_K\_median\\
+\midrule
+design1 & 105 & 5460 & 3 & 1 & 123 & 15000 & 5000 & 0.71 & 0.85 & RCBTL & 1.396000e+00 & 0.873 & 0.820 & 0.765 & 16.887 & 14 & 20 & -861.344 & 27.353 & 42.572 & 1722.689 & 2000 & 4 & 5000 & 5.918 & 13.953 & 181.068 & 1.016 & 343.895 & 343.895\\
+design1 & 105 & 5460 & 3 & 1 & 123 & 15000 & 5000 & 0.71 & 0.85 & BT & 3.126594e+20 & 0.863 & NA & NA & NA & NA & NA & -1203.616 & 29.376 & 0.000 & 2407.232 & 2000 & 4 & 5000 & 1.000 & 20442.506 & 20442.506 & NA & NA & NA\\
+design1 & 105 & 5460 & 3 & 1 & 123 & 15000 & 5000 & 0.71 & 0.85 & BT-SBM & 4.840000e-01 & 0.874 & 0.964 & 0.134 & 3.269 & 3 & 5 & -840.225 & 28.642 & 17.658 & 1680.450 & 2000 & 4 & 5000 & 1.225 & 1579.174 & 7502.812 & 1.009 & 983.926 & 983.926\\
+\bottomrule
+\end{tabular}
+\end{table}

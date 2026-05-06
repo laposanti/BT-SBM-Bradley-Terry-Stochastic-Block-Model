@@ -1608,3 +1608,15 @@ summarise_results_csv(out_file, res_dir)
 # 
 # 
 # 
+
+
+partitions_posterior = read.csv("./results/pe_comparison_designdefault_K3_seed123_job284062/comparison_pearce_ereshova_design1_K3_iters10000_runs1_partitions.csv")
+partitions_posterior$model
+x_hat_btsbm = partitions_posterior%>%
+  filter(model == 'BT-SBM')%>%
+  pull(cluster)
+
+plot_block_adjacency(fit$btsbm, w_ij = as.matrix(fit$w_ij),x_hat = x_hat_btsbm)
+
+fit  = readRDS("results/pearce_ereshova_2017_raw_results.rds")
+

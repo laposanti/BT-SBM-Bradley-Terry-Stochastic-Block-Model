@@ -1,0 +1,13 @@
+\begin{table}
+
+\caption{Post-hoc comparison: RCBTL vs BT-SBM}
+\centering
+\begin{tabular}[t]{lrrrrrrrrrlrrrrrrrrrrrr}
+\toprule
+design & n & n\_pairs & K\_true & run & seed & T\_iter & T\_burn & gamma\_true & p\_adj & model & rmse & spearman & ari & vi & K\_mean & K\_ci\_low & K\_ci\_high & elpd\_loo & elpd\_loo\_se & p\_loo & looic & loo\_draws\_used\\
+\midrule
+design1 & 105 & 5460 & 3 & 1 & 123 & 15000 & 5000 & 0.71 & 0.85 & RCBTL & 1.396 & 0.873 & 0.820 & 0.765 & 16.887 & 14 & 20 & -861.344 & 27.353 & 42.572 & 1722.689 & 2000\\
+design1 & 105 & 5460 & 3 & 1 & 123 & 15000 & 5000 & 0.71 & 0.85 & BT-SBM & 0.484 & 0.874 & 0.964 & 0.134 & 3.269 & 3 & 5 & -840.225 & 28.642 & 17.658 & 1680.450 & 2000\\
+\bottomrule
+\end{tabular}
+\end{table}

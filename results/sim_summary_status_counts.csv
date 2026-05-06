@@ -1,0 +1,4 @@
+model,OK,SKIPPED,n_total,ok_rate
+BT,9,0,9,1
+BT-SBM,9,0,9,1
+RCBTL,1,8,9,0.1111111111111111

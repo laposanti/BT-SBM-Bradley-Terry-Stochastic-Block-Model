@@ -1,0 +1,3 @@
+scenario,design,K_true,seed,a,b,T_iter,T_burn,method,mean_log_lambda_tail,rmse,mae,spearman,kendall,pearson
+design_block_DGP,design1,3,103133,0.01,0.1,5000,1000,raw,-21.803114439792378,137945296.70039335,17070980.53610029,0.9351550528643483,0.8114829926006812,0.1746533151717673
+design_block_DGP,design1,3,103133,0.01,0.1,5000,1000,renorm_each_iter,NA,NA,NA,NA,NA,NA

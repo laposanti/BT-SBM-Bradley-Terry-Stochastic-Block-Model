@@ -1,7 +1,9 @@
 /pp_checks
 .DS_Store
 .Rhistory
+legacy/
 raw_output_ext/
+AOAS2193_Santi_final_files/
 data/simulated_data_K1.RDS
 data/simulated_data_K10.RDS
 data/simulated_data_K11.RDS
